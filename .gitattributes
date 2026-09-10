@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Preserve hash-pinned third-party bytes, regardless of core.autocrlf.
+content/vendor/rnnoise/* -text
