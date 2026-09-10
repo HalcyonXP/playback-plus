@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Playback Plus</title>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="tactile.css">
+  </head>
+  <body>
+    <main class="app" aria-labelledby="extension-title">
+      <div class="faceplate-screws" aria-hidden="true"><i class="screw tl"></i><i class="screw tr"></i><i class="screw bl"></i><i class="screw br"></i></div>
+      <header class="header">
+        <div class="brand">
+          <h1 id="extension-title"><span>Playback</span> <span class="brand-second">Plus</span></h1>
+          <img class="logo" src="../icons/icon-96.png" alt="" width="30" height="30">
+        </div>
+        <div id="availability" class="availability" role="status" hidden>
+          <span id="availabilityText"></span>
+        </div>
+      </header>
+      <p id="notice" class="notice" role="status" aria-live="polite"></p>
+
+      <div id="mainView">
+        <section class="speed-panel playback-panel" aria-label="This tab’s playback speed">
+          <div class="speed-heading">
+            <span id="current-speed-label" class="eyebrow">Playback rate</span><span class="eyebrow">This tab</span>
+          </div>
+          <div class="adjuster">
+            <output id="speedValue" class="speed-value" for="speedRange" aria-labelledby="current-speed-label">2.00×</output>
+            <div class="transport">
+              <button id="increaseButton" class="step-button" type="button" aria-label="Increase speed by 0.25"><span aria-hidden="true">+</span></button>
+              <button id="decreaseButton" class="step-button" type="button" aria-label="Decrease speed by 0.25"><span aria-hidden="true">−</span></button>
+            </div>
+          </div>
+          <div class="range-wrap">
+            <input id="speedRange" class="fader" type="range" min="0.25" max="8" step="0.25" value="2" aria-label="Playback speed">
+            <div class="range-limits" aria-hidden="true"><span>0.25×</span><span>8×</span></div>
+          </div>
+          <div class="presets" role="group" aria-label="Speed presets">
+            <button type="button" data-speed="1">1×</button>
+            <button type="button" data-speed="1.5">1.5×</button>
+            <button type="button" data-speed="2">2×</button>
+            <button type="button" data-speed="2.5">2.5×</button>
+            <button type="button" data-speed="3">3×</button>
+            <button type="button" data-speed="4">4×</button>
+          </div>
+        </section>
+        <button id="audioButton" class="audio-entry" type="button" aria-controls="audioView"><span class="channel-index" aria-hidden="true">A</span><span class="entry-copy"><strong>Audio sync</strong><small id="audioSummary">Loading…</small></span><span class="entry-arrow" aria-hidden="true">›</span></button>
+        <button id="dialogueButton" class="audio-entry dialogue-entry" type="button" aria-controls="dialogueView"><span class="channel-index" aria-hidden="true">B</span><span class="entry-copy"><strong>Dialogue focus</strong><small id="dialogueSummary">Loading…</small></span><span class="entry-arrow" aria-hidden="true">›</span></button>
+        <button id="configButton" class="navigation-button config-button" type="button" aria-controls="configView"><span>Configuration</span><small>Shared keys →</small></button>
+      </div>
+
+      <section id="audioView" aria-labelledby="audioHeading" hidden>
+        <div class="config-heading"><button id="audioBackButton" class="navigation-button" type="button">← Back</button><h2 id="audioHeading">Audio sync</h2><button id="audioEnabled" class="audio-switch" type="button" role="switch" aria-label="Audio sync" aria-checked="false" disabled>Off</button></div>
+        <section class="speed-panel audio-panel" aria-label="This tab’s audio delay">
+          <div class="speed-heading"><span class="eyebrow">Selected audio delay</span><output id="audioValue" class="audio-value" for="audioExact">0 ms</output></div>
+          <p class="config-help">Moves sound later, never earlier.</p>
+          <div class="audio-steps"><button id="audioDecrease" class="navigation-button" type="button" disabled>−500 ms</button><button id="audioIncrease" class="navigation-button" type="button" disabled>+500 ms</button></div>
+          <div class="audio-exact"><label for="audioExact">Exact delay</label><span><input id="audioExact" type="number" min="0" max="5000" step="1" value="0" disabled aria-describedby="audioHelp"> ms</span><button id="audioReset" class="navigation-button" type="button" disabled>Reset</button></div>
+        </section>
+        <p id="audioStatus" class="config-help" role="status" aria-live="polite">Loading…</p>
+        <p id="audioError" class="audio-error" role="status" aria-live="polite"></p>
+        <p id="audioHelp" class="config-help">0–5,000 ms · apply with Enter or by leaving the field. Changing the delay does not turn Audio sync On.</p>
+        <p id="audioSafety" class="safety-note">If sound fails, turn both audio features Off and reload the page.</p>
+        <details id="audioDetails" class="help-details">
+          <summary>More information</summary>
+          <p>For this tab only. Reloading keeps the setting; visiting a different page turns Audio sync Off and resets the delay.</p>
+          <p>Some websites or players may not support audio adjustments.</p>
+          <p>Your audio is unchanged until you turn on an audio feature. After using one, turn both Off and reload to fully restore the player's normal sound.</p>
+          <p>Turning Audio sync Off removes only its delay, not the small delay added by Dialogue focus.</p>
+        </details>
+      </section>
+
+      <section id="dialogueView" aria-labelledby="dialogueHeading" hidden>
+        <div class="config-heading"><button id="dialogueBackButton" class="navigation-button" type="button">← Back</button><h2 id="dialogueHeading">Dialogue focus</h2><button id="dialogueEnabled" class="audio-switch" type="button" role="switch" aria-label="Dialogue focus" aria-checked="false" disabled>Off</button></div>
+        <section class="speed-panel dialogue-panel" aria-label="This tab’s dialogue enhancement">
+          <div class="speed-heading"><label for="dialogueMix" class="eyebrow">Filter mix</label><output id="dialogueValue" class="dialogue-value" for="dialogueMix">100%</output></div>
+          <div class="range-wrap">
+            <input id="dialogueMix" class="fader" type="range" min="0" max="100" step="1" value="100" aria-describedby="dialogueHelp" disabled>
+            <div class="range-limits" aria-hidden="true"><span>Original</span><span>Filtered</span></div>
+          </div>
+        </section>
+        <p id="dialogueStatus" class="config-help" role="status" aria-live="polite">Loading…</p>
+        <p id="dialogueError" class="audio-error" role="status" aria-live="polite"></p>
+        <p id="dialogueHelp" class="config-help">100% filtered audio, not 100% noise removal. Lower mixes restore original sound, including noise. Changing the mix does not turn the filter On.</p>
+        <p id="dialogueSafety" class="safety-note">If the filter stops, the original sound may return suddenly louder. Some players may not be filtered.</p>
+        <details id="dialogueDetails" class="help-details">
+          <summary>More information</summary>
+          <p>Sound is processed on your device, never uploaded. Tries to make speech clearer, not isolate a particular person. Music, sirens and quiet or radio voices may also change.</p>
+          <p>Turning it On adds about 30 ms of delay, plus any delay from your browser, even at 0% mix. Audio sync cannot make late sound arrive earlier.</p>
+          <p>For this tab only, separate from Audio sync. Reloading keeps settings; visiting a different page turns the filter Off and resets the mix to 100%. Turning it Off keeps your mix.</p>
+          <p>Some websites or players may not support the filter. If sound fails, turn both audio features Off and reload the page.</p>
+        </details>
+      </section>
+
+      <section id="configView" aria-labelledby="configHeading" hidden>
+        <div class="config-heading">
+          <button id="backButton" class="navigation-button" type="button">← Back</button>
+          <h2 id="configHeading">Configuration</h2>
+        </div>
+        <p class="config-help shortcut-scope">Shared shortcuts; changes affect the current tab.</p>
+        <h3 class="hotkey-group-label">Playback speed</h3>
+        <div class="hotkey-panel">
+          <div class="hotkey-row">
+            <div class="toggle-copy"><h2>Quick toggle</h2><p>1× ↔ <strong id="alternateValue">2×</strong></p></div>
+            <button id="toggleKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint" aria-pressed="false" disabled>Num 0</button>
+          </div>
+          <div class="hotkey-row">
+            <div class="toggle-copy"><h2>Increase speed</h2><p>By 0.25×</p></div>
+            <button id="increaseKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint" aria-pressed="false" disabled>Num +</button>
+          </div>
+          <div class="hotkey-row">
+            <div class="toggle-copy"><h2>Decrease speed</h2><p>By 0.25×</p></div>
+            <button id="decreaseKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint" aria-pressed="false" disabled>Num −</button>
+          </div>
+        </div>
+        <h3 class="hotkey-group-label audio-config-label">Audio sync</h3>
+        <div class="hotkey-panel">
+          <div class="hotkey-row"><div class="toggle-copy"><h2>Toggle correction</h2><p>Keeps delay</p></div><button id="audioToggleKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint" aria-pressed="false" disabled>Not set</button></div>
+          <div class="hotkey-row"><div class="toggle-copy"><h2>Increase audio delay</h2><p>By 500 ms</p></div><button id="audioIncreaseKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint" aria-pressed="false" disabled>Not set</button></div>
+          <div class="hotkey-row"><div class="toggle-copy"><h2>Decrease audio delay</h2><p>By 500 ms</p></div><button id="audioDecreaseKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint" aria-pressed="false" disabled>Not set</button></div>
+        </div>
+        <p id="hotkeyHint" class="config-help" role="status" aria-live="polite">Choose a shortcut. Press a key. Escape clears it.</p>
+        <details id="shortcutDetails" class="help-details">
+          <summary>More information</summary>
+          <p>The same shortcuts work in every tab, but change only the tab you're using. They are ignored while typing in text fields. Number-row keys can be assigned; they are not enabled by default.</p>
+          <p>Click the same shortcut again or go Back to cancel. Escape clears only the shortcut being set. A key cannot be assigned to two actions.</p>
+          <p>Quick toggle uses each tab’s last non-1× speed. Speed selections also set the default for new tabs, without changing existing tabs.</p>
+        </details>
+      </section>
+    </main>
+    <script src="../shared/speed.js"></script>
+    <script src="../shared/shortcuts.js"></script>
+    <script src="../shared/audio.js"></script>
+    <script src="popup.js"></script>
+    <script src="audio.js"></script>
+  </body>
+</html>

@@ -1,0 +1,90 @@
+/* Approved Studio Deck tactile finish. Loaded after popup.css, which owns
+   natural sizing, control geometry, typography and the shared layout. */
+.app {
+  background: repeating-linear-gradient(0deg, #ffffff02 0 1px, transparent 1px 3px), linear-gradient(125deg, #41443b, #30332e 55%, #292d27);
+  box-shadow: inset 0 1px #909482, inset 1px 0 #5e6455, inset -1px 0 #171c15, inset 0 -3px #171c15;
+}
+.header { border-bottom-color: #1d221a; box-shadow: 0 1px #646c56; }
+.screw { background: radial-gradient(circle at 35% 25%, #8b917b, #414838 50%, #171d13 75%); box-shadow: 0 1px 1px #0e140c, 0 -1px #747d65; }
+.screw::after { background: #171d13; box-shadow: 0 1px #8a937c; }
+.speed-value, .audio-value, .dialogue-value { text-shadow: 0 2px 1px #141b10, 0 0 16px #edb65812; }
+
+/* Ivory keycaps: bevel, front edge, cast shadow; depress rather than merely recolour. */
+.step-button, .navigation-button:not(.config-button) {
+  background: linear-gradient(#f0eedc, #d6d5bf 52%, #c1c1a9);
+  border-color: #eeedd9 #999d83 #959980 #d4d8bd;
+  border-radius: 3px;
+  box-shadow: inset 0 1px #fffef0, inset 0 -2px #b4b69b, 0 3px 0 #7e846c, 0 4px 0 #11180d, 0 6px 6px #0b110b88;
+  text-shadow: 0 1px #ffffff66;
+}
+.step-button:hover:not(:disabled), .navigation-button:not(.config-button):hover:not(:disabled) { background: linear-gradient(#fffce8, #dedcc4 65%, #c8c9ad); border-top-color: #fffdf0; }
+.step-button:active:not(:disabled), .navigation-button:not(.config-button):active:not(:disabled) {
+  transform: translateY(3px);
+  background: linear-gradient(#c0c3a8, #dddbc4);
+  box-shadow: inset 0 1px 3px #4c553c88, 0 1px #10170c;
+}
+
+/* Recessed rails, substantial slider caps. Original size and centre stroke retained. */
+.fader::-moz-range-track { height: 5px; background: #11180e; border-top: 1px solid #0b1108; border-bottom: 1px solid #858e72; box-shadow: inset 0 2px 3px #000b, 0 1px #ffffff08; }
+.fader::-moz-range-progress { height: 4px; background: #11180e; }
+.fader::-moz-range-thumb { border-radius: 2px; border-color: #f3f1d9 #868d72 #93997f #e3e6ce; background: linear-gradient(90deg, transparent 43%, #626a50 43% 51%, #f8f5df 51% 57%, transparent 57%), linear-gradient(#f3efd8, #d1d0b4 70%, #b4b99b); box-shadow: inset 0 1px #ffffed, inset 0 -2px #a2ab8c, 0 3px #6b755a, 0 4px #10170c, 0 6px 5px #060e09aa; }
+.fader::-webkit-slider-runnable-track { height: 5px; background: #11180e; border-top: 1px solid #0b1108; border-bottom: 1px solid #858e72; box-shadow: inset 0 2px 3px #000b; }
+.fader::-webkit-slider-thumb { border-radius: 2px; border-color: #f3f1d9 #868d72 #93997f #e3e6ce; background: linear-gradient(90deg, transparent 43%, #626a50 43% 51%, #f8f5df 51% 57%, transparent 57%), linear-gradient(#f3efd8, #d1d0b4 70%, #b4b99b); box-shadow: inset 0 1px #ffffed, inset 0 -2px #a2ab8c, 0 3px #6b755a, 0 4px #10170c, 0 6px 5px #060e09aa; }
+.fader:active::-moz-range-thumb { box-shadow: inset 0 1px #ffffed, inset 0 -1px #a2ab8c, 0 1px #6b755a, 0 2px 3px #060e09aa; }
+
+/* Presets and shortcut keys become physical dark keys, not rounded cards. */
+.presets button, .hotkey-button {
+  border-radius: 3px;
+  background: linear-gradient(#4b5241, #363e2e 55%, #303728);
+  border-color: #6d775c #242d1e #151d11 #566249;
+  box-shadow: inset 0 1px #7e886866, inset 1px 0 #ffffff09, 0 2px #161e10, 0 4px 4px #0a110a66;
+  text-shadow: 0 1px #121b0c;
+}
+.presets button:hover:not(:disabled), .hotkey-button:hover:not(:disabled) { background: linear-gradient(#5b624b, #414932); color: #ffe0a3; }
+.presets button[aria-pressed="true"], .hotkey-button[aria-pressed="true"] {
+  background: linear-gradient(#403921, #51482b); color: #ffd387; border-color: #b58639;
+  box-shadow: inset 0 2px 4px #151608cc, inset 0 0 0 1px #d8a24944, 0 1px #7e80604d;
+  text-shadow: 0 0 7px #ffc86b55;
+}
+.presets button:active:not(:disabled), .hotkey-button:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 2px 3px #121b0c99, 0 1px #161e10; }
+
+/* Broad, shallow rocker faces remain part of the continuous deck. */
+.audio-entry {
+  padding-left: 10px; padding-right: 10px;
+  background: linear-gradient(#ffffff05, #00000012);
+  border-top-color: #78816a;
+  box-shadow: inset 1px 0 #ffffff0a, inset -1px 0 #0005, inset 0 -2px #172012, inset 0 -3px #0002;
+}
+.audio-entry:hover { background: linear-gradient(#ffffff0e, #00000008); }
+.audio-entry:active { background: linear-gradient(#0003, #ffffff03); box-shadow: inset 0 2px 4px #10170e99, inset 0 -1px #74805e; }
+.entry-arrow { text-shadow: 0 2px 1px #080f08; }
+.config-button { padding: 8px 10px; margin-top: 1px; border-top-color: #6c775e; background: linear-gradient(#4b5340, #323b29); box-shadow: inset 0 1px #ffffff08, 0 2px #172012, 0 3px 3px #0004; }
+.config-button:hover:not(:disabled) { background: linear-gradient(#566044, #3b452f); box-shadow: inset 0 1px #ffffff0d, 0 2px #172012, 0 3px 3px #0004; }
+.config-button:active:not(:disabled) { transform: translateY(1px); background: linear-gradient(#283120, #404932); box-shadow: inset 0 1px 3px #0008; }
+
+/* Mechanical toggle in an inset socket, not a flat painted switch. */
+.audio-switch { background: linear-gradient(#414a35, #2b3423); border-color: #788467 #1c2715 #192212 #5f6d50; box-shadow: inset 0 1px #a9b49522, 0 2px #11190d, 0 3px 4px #0005; }
+.audio-switch::before { background: #10180b; border-color: #0e150a #4b593b #829167 #28361d; box-shadow: inset 0 2px 3px #000c; }
+.audio-switch::after { background: linear-gradient(#f0efd6, #b9c29f); border-color: #f5f5de #899775 #72805f #dbe0c4; box-shadow: inset 0 1px #ffffea, 1px 2px 2px #000b; }
+.audio-switch[aria-checked="true"] { border-color: #bc954c #382e1a #272519 #8f753e; }
+.audio-switch[aria-checked="true"]::after { background: linear-gradient(#ffe6a2, #eab057 65%, #bc7e29); border-color: #ffe1a1 #ae7a2c #8e6424 #f4cb78; box-shadow: inset 0 1px #fff3cc, 1px 2px 2px #000b, 0 0 7px #efb55144; }
+.audio-switch:active:not(:disabled) { box-shadow: inset 0 2px 3px #0005, 0 1px #11190d; }
+.audio-exact input { background: linear-gradient(#192211, #26301d); border-color: #121d0c #525f43 #859370 #394b2b; box-shadow: inset 0 2px 4px #071006aa, 0 1px #ffffff08; }
+.help-details summary { text-shadow: 0 1px #131b0e; }
+button:disabled, input:disabled { box-shadow: none; }
+/* Keep keyboard focus unambiguous; no motion required to understand a state. */
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid #fff2be; outline-offset: 3px; }
+/* High-contrast users need system-colour outlines, not simulated lighting. */
+@media (forced-colors: active) {
+  .app, .speed-value, .audio-value, .dialogue-value, .entry-arrow,
+  button, input, summary { text-shadow: none !important; box-shadow: none !important; }
+  .app, button, input { background: Canvas !important; }
+  button { border: 1px solid ButtonText; }
+  .presets button[aria-pressed="true"], .audio-switch[aria-checked="true"],
+  .hotkey-button[aria-pressed="true"] { border-color: Highlight; outline: 1px solid Highlight; }
+  .audio-switch::before { background: Canvas; border-color: ButtonText; box-shadow: none; }
+  .audio-switch::after, .audio-switch[aria-checked="true"]::after { background: ButtonText; border-color: ButtonText; box-shadow: none; }
+  .fader::-moz-range-track, .fader::-moz-range-progress { background: Canvas; border: 1px solid ButtonText; box-shadow: none; }
+  .fader::-moz-range-thumb { background: ButtonText; border-color: ButtonText; box-shadow: none; }
+  button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid Highlight; outline-offset: 3px; }
+}

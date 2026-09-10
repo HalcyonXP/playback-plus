@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Playback Plus content-script fixture</title>
+  </head>
+  <body>
+    <video id="existing" controls></video>
+    <audio id="existing-audio" controls></audio>
+    <div id="dynamic-target"></div>
+
+    <script src="browser-init.js"></script>
+    <script src="../shared/speed.js"></script>
+    <script src="../shared/shortcuts.js"></script>
+    <script src="../content/content.js"></script>
+    <script>
+      window.addEventListener("load", () => {
+        const dynamicVideo = document.createElement("video");
+        dynamicVideo.id = "dynamic";
+        document.querySelector("#dynamic-target").append(dynamicVideo);
+
+        const dynamicAudio = document.createElement("audio");
+        dynamicAudio.id = "dynamic-audio";
+        document.querySelector("#dynamic-target").append(dynamicAudio);
+
+        const host = document.createElement("fixture-player");
+        host.id = "shadow-host";
+        const shadow = host.attachShadow({ mode: "open" });
+        const shadowVideo = document.createElement("video");
+        shadowVideo.id = "shadow-video";
+        shadow.append(shadowVideo);
+        const shadowAudio = document.createElement("audio");
+        shadowAudio.id = "shadow-audio";
+        shadow.append(shadowAudio);
+        document.body.append(host);
+      });
+    </script>
+  </body>
+</html>

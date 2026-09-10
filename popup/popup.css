@@ -1,0 +1,143 @@
+:root {
+  color-scheme: dark;
+  --bg: #30332e;
+  --line: #69715b;
+  --text: #e2e1cf;
+  --muted: #bec2ad;
+  --accent: #edb658;
+  --key: #dedeca;
+  --key-ink: #292d24;
+  --danger: #ffc0a6;
+  --mono: Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: Bahnschrift, "Arial Narrow", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); }
+/* Firefox sizes the native popup from the body's natural height. Do not cap the
+   body or use viewport-height sizing: that can prevent growth after help opens.
+   The browser caps the viewport at 600px (or less available screen space).
+   Only the root scrolls when content genuinely exceeds that viewport. */
+html { width: 360px; overflow-x: hidden; overflow-y: auto; scrollbar-color: #8a9279 var(--bg); scrollbar-width: thin; }
+body { width: 360px; min-width: 360px; overflow: visible; }
+button, input { font: inherit; }
+button { color: inherit; cursor: pointer; }
+h1, h2, h3, p { margin: 0; }
+[hidden] { display: none !important; }
+
+/* One continuous instrument faceplate, not a stack of cards. */
+.app {
+  position: relative;
+  padding: 18px 24px;
+  border: 1px solid #1a1e17;
+  box-shadow: inset 0 1px #696d60, inset 0 -3px #1d201b;
+}
+.faceplate-screws { display: contents; }
+.screw { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #191c17; box-shadow: 0 1px #69705c; pointer-events: none; }
+.screw::after { content: ""; position: absolute; width: 4px; height: 1px; top: 3px; left: 1.5px; background: #7b846a; transform: rotate(-35deg); }
+.tl { top: 10px; left: 10px; } .tr { top: 10px; right: 10px; }
+.bl { bottom: 10px; left: 10px; } .br { bottom: 10px; right: 10px; }
+.header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+.brand { position: relative; flex: 0 0 143px; }
+h1 { font-size: 19px; font-weight: 500; letter-spacing: 1px; line-height: 1.05; text-transform: uppercase; }
+h1 > span { display: block; }
+h1 .brand-second { margin-top: 4px; font-size: 28px; letter-spacing: 3px; }
+.logo { position: absolute; left: 83px; bottom: 0; width: 30px; height: 30px; }
+.availability { max-width: 137px; font: 10px/1.5 var(--mono); color: var(--muted); text-align: right; }
+
+/* Readouts and calibrated, keyboard-operable native range inputs. */
+.speed-panel { padding: 0; }
+.speed-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.eyebrow { color: var(--muted); font-size: 10.5px; line-height: 1.4; letter-spacing: 1.2px; text-transform: uppercase; }
+.adjuster { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 96px; }
+.speed-value { min-width: 0; color: var(--accent); font: 68px/1.1 var(--mono); letter-spacing: -5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.transport { display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
+.step-button, .navigation-button { border: 1px solid #e4e5d2; border-radius: 2px; background: linear-gradient(#e0decb, #b9baa8); color: var(--key-ink); box-shadow: 0 2px #191e15; }
+.step-button { display: grid; place-items: center; width: 36px; height: 32px; padding: 0; }
+/* Centre strokes geometrically; font math glyphs can sit below the visual centre. */
+.step-button > span { position: relative; display: block; width: 14px; height: 14px; font-size: 0; }
+.step-button > span::before, #increaseButton > span::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 2px; background: currentColor; transform: translate(-50%, -50%); forced-color-adjust: none; }
+#increaseButton > span::after { width: 2px; height: 12px; }
+.step-button:hover:not(:disabled), .navigation-button:hover:not(:disabled) { background: var(--key); border-color: #fffbe7; }
+.step-button:active:not(:disabled), .navigation-button:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px #191e15; }
+.range-wrap { position: relative; padding-top: 9px; }
+.range-wrap::before { content: ""; position: absolute; left: 9px; right: 9px; top: 0; height: 9px; background: repeating-linear-gradient(to right, #87916f 0 1px, transparent 1px calc(100% / 16)); pointer-events: none; }
+.fader { display: block; width: 100%; height: 30px; margin: 0; padding: 0; appearance: none; background: transparent; cursor: pointer; }
+.fader::-moz-range-track { height: 4px; background: #13190e; border-bottom: 1px solid #7b8468; border-radius: 0; }
+.fader::-moz-range-progress { height: 4px; background: #13190e; }
+.fader::-moz-range-thumb { width: 16px; height: 26px; border: 1px solid #aeb49b; border-radius: 1px; background: linear-gradient(90deg, #e4e0cb 0 7px, #505944 7px 8px, #e4e0cb 8px); box-shadow: 0 2px 2px #171d12; }
+.fader::-webkit-slider-runnable-track { height: 4px; background: #13190e; border-bottom: 1px solid #7b8468; }
+.fader::-webkit-slider-thumb { appearance: none; margin-top: -12px; width: 18px; height: 28px; border: 1px solid #aeb49b; border-radius: 1px; background: linear-gradient(90deg, #e4e0cb 0 7px, #505944 7px 8px, #e4e0cb 8px); box-shadow: 0 2px 2px #171d12; }
+.range-limits { display: flex; justify-content: space-between; margin-top: 2px; color: var(--muted); font: 10px/1.4 var(--mono); }
+.presets { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 13px 0 22px; }
+.presets button { min-width: 0; padding: 7px 0; border: 0; border-bottom: 2px solid var(--line); border-radius: 0; background: transparent; color: var(--text); font: 11px/1.5 var(--mono); }
+.presets button:hover { color: var(--accent); border-color: var(--accent); }
+.presets button[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); font-weight: bold; }
+
+/* Effect channels are ruled rows on the faceplate. Status remains descriptive. */
+.audio-entry { display: flex; width: 100%; align-items: center; gap: 11px; padding: 16px 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; text-align: left; }
+.channel-index { color: var(--muted); font: 11px var(--mono); align-self: flex-start; padding-top: 2px; }
+.entry-copy { min-width: 0; flex: 1; }
+.audio-entry strong { display: block; font-size: 13px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+.audio-entry small { display: block; margin-top: 7px; color: var(--muted); font: 11px/1.5 var(--mono); overflow-wrap: anywhere; }
+.entry-arrow { color: var(--accent); font: 25px Arial, sans-serif; }
+.audio-entry:hover strong, .config-button:hover span { color: var(--accent); }
+.navigation-button { padding: 8px 10px; font-size: 12px; line-height: 1.4; }
+.config-button { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 17px 0 0; border: 0; border-top: 1px solid #989f87; border-radius: 0; background: transparent; box-shadow: none; color: var(--text); text-align: left; font-size: 10px; letter-spacing: .8px; text-transform: uppercase; }
+.config-button small { color: var(--accent); font-size: 9px; }
+.config-button:hover:not(:disabled), .config-button:active:not(:disabled) { background: transparent; box-shadow: none; transform: none; }
+
+/* Both audio detail views share the deck's amber instruments and engraved labels. */
+.config-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.config-heading h2 { font-size: 15px; font-weight: 500; }
+.config-heading .navigation-button { flex: 0 0 auto; padding: 7px 8px; font-size: 11px; }
+.audio-switch { position: relative; flex: 0 0 auto; margin-left: auto; min-width: 75px; min-height: 32px; padding: 6px 6px 6px 43px; border: 1px solid #929a82; border-radius: 2px; background: #23291e; color: var(--text); font: 11px/1.4 var(--mono); text-transform: uppercase; }
+.audio-switch::before { content: ""; position: absolute; left: 6px; top: calc(50% - 9px); width: 30px; height: 18px; border: 1px solid #7d886b; background: #141b10; }
+.audio-switch::after { content: ""; position: absolute; left: 9px; top: calc(50% - 6px); width: 11px; height: 12px; border: 1px solid #d0d3bc; background: var(--key); transition: transform 120ms ease; }
+.audio-switch[aria-checked="true"] { color: var(--accent); border-color: var(--accent); }
+.audio-switch[aria-checked="true"]::after { transform: translateX(13px); background: var(--accent); border-color: var(--accent); }
+.audio-switch:hover:not(:disabled) { border-color: var(--accent); }
+.audio-panel .speed-heading, .dialogue-panel .speed-heading { display: block; }
+.audio-value, .dialogue-value { display: block; margin-top: 6px; color: var(--accent); font: 50px/1.15 var(--mono); letter-spacing: -2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.audio-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.audio-exact { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 14px 0 18px; color: var(--muted); font-size: 12px; }
+.audio-exact > span { white-space: nowrap; }
+.audio-exact input { width: 78px; padding: 7px 4px; border: 1px solid #909b7c; border-radius: 1px; background: #22291b; color: var(--accent); font: 14px var(--mono); }
+.audio-exact button { padding: 7px 8px; font-size: 11px; }
+.dialogue-panel .range-wrap { margin: 16px 0 18px; }
+.config-help { margin: 12px 0; color: var(--muted); font: 12px/1.5 Arial, sans-serif; overflow-wrap: anywhere; }
+#audioStatus, #dialogueStatus { padding-top: 12px; border-top: 1px solid var(--line); }
+#audioStatus:empty, #dialogueStatus:empty { display: none; }
+.safety-note { margin: 12px 0; padding-left: 10px; border-left: 2px solid var(--accent); color: #f2cb8b; font: 12px/1.5 Arial, sans-serif; }
+.help-details { margin-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font: 12px/1.5 Arial, sans-serif; }
+.help-details summary { padding: 12px 2px; color: var(--text); cursor: pointer; }
+.help-details summary:hover { color: var(--accent); }
+.help-details p { margin: 0 0 12px; }
+.audio-error { color: var(--danger); font: 12px/1.5 Arial, sans-serif; overflow-wrap: anywhere; }
+.audio-error:empty, .notice:empty { display: none; }
+.notice { margin-bottom: 12px; color: var(--danger); font: 11px/1.5 Arial, sans-serif; overflow-wrap: anywhere; }
+
+/* Shortcut patch panel: shared bindings, no boxed rows or concealed capture states. */
+.shortcut-scope { margin: 0 0 8px; }
+.hotkey-group-label { margin: 10px 0 4px; font-size: 10.5px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); }
+.hotkey-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+.toggle-copy { min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px 8px; }
+.toggle-copy h2 { font-size: 12px; font-weight: 500; }
+.toggle-copy p { font: 11px/1.4 Arial, sans-serif; color: var(--muted); }
+.toggle-copy strong { color: var(--accent); font-weight: normal; }
+#hotkeyHint { margin: 10px 0; }
+#shortcutDetails summary { padding: 10px 2px; }
+.hotkey-button { flex: 0 0 auto; max-width: 132px; min-width: 66px; min-height: 34px; padding: 7px 8px; border: 1px solid #929a82; border-radius: 2px; background: #23291e; color: var(--accent); font: 11px/1.5 var(--mono); overflow-wrap: anywhere; }
+.hotkey-button:hover { border-color: var(--accent); }
+.hotkey-button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: #252a1d; }
+
+button:disabled, input:disabled { cursor: default; opacity: .48; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid #fff2be; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+@media (forced-colors: active) {
+  .fader::-moz-range-thumb { background: ButtonText; border-color: ButtonText; }
+  .fader::-moz-range-track { border: 1px solid ButtonText; }
+  .presets button[aria-pressed="true"], .audio-switch[aria-checked="true"], .hotkey-button[aria-pressed="true"] { border-color: Highlight; }
+}
