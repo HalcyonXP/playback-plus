@@ -2,7 +2,7 @@
 
 **Your playback, your pace.** Control playback speed, sound timing and dialogue in Firefox—independently for each tab.
 
-**Version 1.7.0 · Firefox 142+**
+**Version 1.7.0 · Firefox 142+** · **[Download unsigned XPI](https://github.com/HalcyonXP/playback-plus/releases/download/v1.7.0/playback-plus-1.7.0.xpi)**
 
 [![Playback Plus Studio Deck interface: playback speed, audio sync, dialogue focus and keyboard shortcut configuration.](docs/images/playback-plus-overview.png)](docs/images/playback-plus-overview.png)
 
@@ -17,33 +17,26 @@
 
 ## Install
 
-This repository currently provides **source code**, not a prebuilt extension download.
+**This release is unsigned.** Permanent installation requires **Firefox Developer Edition or Nightly 142+**. Standard Firefox requires a signed extension; use the temporary option below to try it instead.
 
-### Try it in Firefox
+If you use the separate **Audio Sync** add-on, disable it first to avoid conflicting audio processing.
 
-1. Choose **Code → Download ZIP** on this GitHub page and extract it.
-2. Open `about:debugging#/runtime/this-firefox` in Firefox.
-3. Select **Load Temporary Add-on…** and choose the extracted `manifest.json`.
-4. Reload your media tabs, then open **Playback Plus** from Firefox’s Extensions menu.
+1. [Download Playback Plus 1.7.0 (.xpi)](https://github.com/HalcyonXP/playback-plus/releases/download/v1.7.0/playback-plus-1.7.0.xpi) and save the file.
+2. In Developer Edition or Nightly, open `about:config` and set `xpinstall.signatures.required` to `false`. **This disables signature enforcement; only do so if you understand the security implications.**
+3. Open `about:addons` → gear menu → **Install Add-on From File…** and select the XPI.
+4. Accept the permissions, reload your media tabs, then open **Playback Plus** from Firefox’s Extensions menu.
 
-Temporary installation lasts until Firefox closes. If you use the separate **Audio Sync** add-on, disable it first to avoid conflicting audio processing.
+[Release notes and SHA-256 checksum](https://github.com/HalcyonXP/playback-plus/releases/tag/v1.7.0)
 
 <details>
-<summary>Keep it installed — Developer Edition or Nightly</summary>
+<summary>Try it temporarily in standard Firefox</summary>
 
-With Python installed, run this from the extracted folder:
+1. Download **Source code (zip)** from the [release page](https://github.com/HalcyonXP/playback-plus/releases/tag/v1.7.0) and extract it.
+2. Open `about:debugging#/runtime/this-firefox` in Firefox.
+3. Select **Load Temporary Add-on…** and choose the extracted `manifest.json`.
+4. Reload your media tabs.
 
-```sh
-python tools/package_extension.py
-```
-
-This creates `dist/playback-plus-1.7.0.xpi`. In Firefox Developer Edition or Nightly:
-
-1. Open `about:config` and set `xpinstall.signatures.required` to `false`. **This disables signature enforcement; only do so if you understand the security implications.**
-2. Open `about:addons` → gear menu → **Install Add-on From File…** and select the XPI.
-3. Accept the permissions and reload your media tabs.
-
-Standard Firefox requires a signed extension for permanent installation.
+Temporary installation lasts until Firefox closes. No change to signature settings is needed for this option.
 
 </details>
 
