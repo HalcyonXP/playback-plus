@@ -4,6 +4,10 @@
 
 **Version 1.7.0 · Firefox 142+**
 
+[![Playback Plus Studio Deck interface: playback speed, audio sync, dialogue focus and keyboard shortcut configuration.](docs/images/playback-plus-overview.png)](docs/images/playback-plus-overview.png)
+
+*Four views, one compact control panel. Click the image for a closer look.*
+
 ## Make playback work for you
 
 - **Playback speed:** watch or listen at **0.25×–8×**, with quick presets and a one-key toggle back to normal speed.

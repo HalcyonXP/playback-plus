@@ -13,6 +13,13 @@
 !/tests/
 !/tools/
 
+# Reviewed public product image only; other documentation assets stay excluded.
+!/docs/
+/docs/*
+!/docs/images/
+/docs/images/*
+!/docs/images/playback-plus-overview.png
+
 # Local operational context, design experiments and generated distributions.
 /AGENTS.md
 /.pi/
