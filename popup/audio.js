@@ -26,8 +26,6 @@
     const applying = frames.some(f => f.applying);
     const suspended = frames.some(f => f.connected && f.contextState !== "running");
     const engineError = frames.find(f => f.error)?.error || "";
-    const unavailableHelp = "Audio controls aren't available on this page. Try reloading it.";
-    const startHelp = "Start a video or audio player to use this feature.";
     const limitedHelp = "Some players on this page may be unaffected.";
     let status;
     if (!ready) status = statusError ? "Audio controls unavailable" : "Loading…";
@@ -37,12 +35,13 @@
     else if (applying) status = "Starting Audio sync…";
     else if (suspended && connected) status = "Click the page to start audio";
     else if (connected) status = `${partial ? "Limited support" : "On"} · ${state.delayMs} ms`;
-    else if (unavailable || engineError) status = "Audio sync unavailable";
-    else status = "Start a video or audio player";
-    e.audioSummary.textContent = status;
-    // Normal Off state needs no technical commentary beneath the controls.
-    e.audioStatus.textContent = ready && !state.enabled
-      ? (!eligible ? (unavailable || !frames.length ? unavailableHelp : startHelp) : "")
+    else if (engineError) status = "Audio sync unavailable";
+    else status = "";
+    // No player/bridge is not an engine failure. Keep the selected state in the
+    // entry row without claiming processing success or adding a no-media banner.
+    e.audioSummary.textContent = status || `On · ${state.delayMs} ms selected`;
+    e.audioStatus.textContent = (ready && !state.enabled) || !status
+      ? ""
       : `${status}${status.endsWith("…") ? "" : "."}${state.enabled && partial && connected && !statusError ? ` ${limitedHelp}` : ""}`;
     e.audioError.textContent = writeError || (statusError
       ? "Couldn't check the audio controls. Close and reopen Playback Plus."
@@ -60,7 +59,8 @@
 
     const filtered = sum("dialogueConnected");
     const filterError = frames.find(f => f.dialogueError)?.dialogueError || "";
-    const filterPartial = partial || sum("dialogueFailed") > 0 || Boolean(filterError);
+    const filterFailed = sum("dialogueFailed") > 0 || Boolean(filterError);
+    const filterPartial = partial || filterFailed;
     let dialogueStatus;
     if (!ready) dialogueStatus = statusError ? "Audio controls unavailable" : "Loading…";
     else if (!state.dialogueEnabled) dialogueStatus = "Off";
@@ -68,16 +68,16 @@
     else if (applying || sum("dialoguePending")) dialogueStatus = "Starting filter…";
     else if (filtered && suspended) dialogueStatus = "Click the page to start audio";
     else if (filtered) dialogueStatus = `${filterPartial ? "Limited support" : "On"} · ${state.dialogueMix}% mix`;
-    else if (filterError) dialogueStatus = "Filter unavailable";
-    else if (unavailable || engineError) dialogueStatus = "Dialogue focus unavailable";
-    else dialogueStatus = "Start a video or audio player";
-    e.dialogueSummary.textContent = dialogueStatus;
-    e.dialogueStatus.textContent = ready && !state.dialogueEnabled
-      ? (!eligible ? (unavailable || !frames.length ? unavailableHelp : startHelp) : "")
+    else if (filterFailed) dialogueStatus = "Filter unavailable";
+    else if (engineError) dialogueStatus = "Voice Clarity unavailable";
+    else dialogueStatus = "";
+    e.dialogueSummary.textContent = dialogueStatus || `On · ${state.dialogueMix}% selected`;
+    e.dialogueStatus.textContent = (ready && !state.dialogueEnabled) || !dialogueStatus
+      ? ""
       : `${dialogueStatus}${dialogueStatus.endsWith("…") ? "" : "."}${state.dialogueEnabled && filterPartial && filtered && !statusError ? ` ${limitedHelp}` : ""}`;
     e.dialogueError.textContent = writeError || (statusError
       ? "Couldn't check the audio controls. Close and reopen Playback Plus."
-      : state.dialogueEnabled && filterError ? "The filter isn't working. Turn it Off and On to try again."
+      : state.dialogueEnabled && filterFailed ? "The filter isn't working. Turn it Off and On to try again."
         : state.dialogueEnabled && engineError ? "Audio processing isn't available here. Turn both audio features Off and reload the page." : "");
     e.dialogueEnabled.textContent = state.dialogueEnabled ? "On" : "Off";
     e.dialogueEnabled.setAttribute("aria-checked", String(state.dialogueEnabled));

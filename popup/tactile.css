@@ -1,78 +1,93 @@
-/* Outlined Graphite — B2b continuous strips and flat ruled readouts.
+/* GB1 — Charcoal / Ice blue, on the Outlined Graphite B2b layout.
    popup.css owns geometry. Button rows share the Audio/Dialogue surface;
    read-only text never receives a button face. Slider caps stay tactile. */
 @media (forced-colors: none) {
   :root {
-    --panel-face: repeating-linear-gradient(0deg, #ffffff02 0 1px, transparent 1px 3px), linear-gradient(125deg, #3e453b, #2b332b 60%, #242c25);
-    --label-shadow: -.5px 0 #080e08, .5px 0 #080e08, 0 -.5px #080e08, 0 .5px #080e08, 0 2px 1px #0007;
-    --readout-shadow: -1px 0 #0b120c, 1px 0 #0b120c, 0 -1px #0b120c, 0 1px #0b120c, 0 3px 1px #080e09;
-    --cap-face: linear-gradient(#777d68 0%, #535c47 12%, #424d3a 55%, #35412f 84%, #222e20 86%, #394732 100%);
-    --cap-border: #a8b18f #263622 #152511 #798965;
-    --cap-shadow: inset 0 1px #d7dfb988, inset 1px 0 #c4d3a444, inset -1px 0 #101e0c, inset 0 -2px #192c13, 0 3px #34482b, 0 4px #0e1c09, 1px 7px 5px #000c;
-    --thumb-groove: linear-gradient(90deg, transparent 36%, #1b2717 36% 44%, #ffd180 44% 56%, #a47733 56% 63%, transparent 63%);
-    --row-face: linear-gradient(#ffffff0c, #00000028);
-    --row-shadow: inset 0 1px #d0d6b515, inset 1px 0 #ffffff0a, inset -1px 0 #0005, inset 0 -2px #0b1209, 0 2px 3px #0004;
-    --row-pressed: inset 0 2px 4px #10170e99, inset 0 -1px #74805e;
+    --warning: #f1c784;
+    --frame-edge: #58616e;
+    --panel-face: repeating-linear-gradient(0deg,#ffffff02 0 1px,transparent 1px 3px),linear-gradient(125deg,#30343b,#20242b 80%);
+    --highlight: #ffffff28;
+    --lowlight: #00000070;
+    --label-shadow: -.5px 0 #101218, .5px 0 #101218, 0 -.5px #101218, 0 .5px #101218, 0 2px 1px #0005;
+    --readout-shadow: -1px 0 #0d1017, 1px 0 #0d1017, 0 -1px #0d1017, 0 1px #0d1017, 0 3px 1px #0006;
+    --soft-rule: #5c6674;
+    --soft-accent: #9bcaff44;
+    --row-face: linear-gradient(#383c43,#1d2128);
+    --row-shadow: inset 0 1px #ffffff28,inset 1px 0 #ffffff0a,inset -1px 0 #0002,inset 0 -2px #00000070,0 2px 3px #0002;
+    --row-pressed: inset 0 2px 4px #0003,inset 0 -1px #7d8a9b;
+    --selected-face: linear-gradient(#3d4653,#2c3540);
+    --hover-face: linear-gradient(#363d47,#272e38);
+    --pressed-face: linear-gradient(#2c3540,#363d47);
+    --quiet-face: #262a31;
+    --track: #121418;
+    --track-edge: #16191e;
+    --cap-mid: #4b525d;
+    --cap-face: linear-gradient(#7d8a9b,#4b525d 15%,#30343b 80%,#16191e 84%,#30343b);
+    --cap-border: #7d8a9b #16191e #16191e #7d8a9b;
+    --cap-shadow: inset 0 1px #ffffff28,inset 1px 0 #ffffff22,inset 0 -2px #16191e,0 3px #16191e,0 4px #00000070,1px 6px 5px #0004;
+    --thumb-groove: linear-gradient(90deg,transparent 36%,#16191e 36% 44%,#9bcaff 44% 56%,#16191e 56% 63%,transparent 63%);
   }
 
   .app * { text-shadow: var(--label-shadow); }
   .app .speed-value, .app .audio-value, .app .dialogue-value { text-shadow: var(--readout-shadow); }
-  .app { background: var(--panel-face); box-shadow: inset 0 1px #909482, inset 1px 0 #5e6455, inset -1px 0 #171c15, inset 0 -3px #171c15; }
-  .screw { background: radial-gradient(circle at 35% 25%, #8b917b, #414838 50%, #171d13 75%); box-shadow: 0 1px 1px #0e140c, 0 -1px #747d65; }
-  .screw::after { background: #171d13; box-shadow: 0 1px #8a937c; }
-  .default-readout { border-color: #78816a66; background: transparent; box-shadow: none; }
+  .app { border-color: var(--frame-edge); background: var(--panel-face); box-shadow: inset 0 1px var(--highlight), inset 0 -2px var(--lowlight); }
+  .screw { background: radial-gradient(circle at 35% 25%, var(--line), var(--cap-mid) 50%, var(--track-edge) 75%); box-shadow: 0 1px 1px #0003, 0 -1px var(--highlight); }
+  .screw::after { background: var(--track-edge); box-shadow: 0 1px var(--line); }
+  .default-readout { border-color: var(--soft-rule); background: transparent; box-shadow: none; }
 
   /* One shared, square-edged action surface on every page. */
   .step-button, .navigation-button, .presets button, .audio-switch, .audio-entry {
-    border-top-color: #78816a; background: var(--row-face); box-shadow: var(--row-shadow);
+    border-top-color: var(--line); background: var(--row-face); box-shadow: var(--row-shadow);
   }
   .step-button, .navigation-button:not(.config-button) { font-weight: 700; }
-  .navigation-button.save-default { color: var(--accent); font-weight: 600; border: 0; border-top: 1px solid #78816a; }
-  .presets button:not(:last-child), #audioDecrease { border-right-color: #78816a55; }
+  .navigation-button.save-default { color: var(--accent); font-weight: 600; border: 0; border-top: 1px solid var(--line); }
+  .presets button:not(:last-child), #audioDecrease { border-right-color: var(--soft-rule); }
   .step-button:hover:not(:disabled), .navigation-button:hover:not(:disabled),
   .presets button:hover:not(:disabled), .audio-switch:hover:not(:disabled), .audio-entry:hover {
-    background: linear-gradient(#ffffff0e, #00000008); color: var(--accent); filter: none;
+    background: var(--hover-face); color: var(--accent); filter: none;
     box-shadow: var(--row-shadow);
   }
   .step-button:active:not(:disabled), .navigation-button:active:not(:disabled),
   .presets button:active:not(:disabled), .audio-switch:active:not(:disabled), .audio-entry:active {
-    background: linear-gradient(#0003, #ffffff03); box-shadow: var(--row-pressed); transform: none;
+    background: var(--pressed-face); box-shadow: var(--row-pressed); transform: none;
   }
   .presets button[aria-pressed="true"] {
-    color: var(--accent); border-top-color: var(--accent); background: linear-gradient(#edb6580c, #00000028);
-    box-shadow: inset 0 1px #edb65828, inset 0 -2px var(--accent), 0 2px 3px #0004;
+    color: var(--accent); border-top-color: var(--accent); background: var(--selected-face);
+    box-shadow: inset 0 1px var(--soft-accent), inset 0 -2px var(--accent), 0 2px 3px #0002;
   }
   .audio-entry:hover { color: var(--text); }
 
-  /* Switches remain switches, with a distinct track/thumb and amber On state. */
-  .audio-switch::before { background: #10180b; border-color: #0e150a #4b593b #829167 #28361d; box-shadow: inset 0 2px 3px #000c; }
-  .audio-switch::after { background: linear-gradient(#b5bba5, #848f76); border-color: #c6cdb7 #646f58 #586449 #acb69b; box-shadow: inset 0 1px #ffffff44, 0 1px 1px #0008; }
+  /* Switches remain switches, with a distinct track/thumb and ice-blue On state. */
+  .audio-switch::before { background: var(--track); border-color: var(--track-edge) var(--line) var(--line) var(--track-edge); box-shadow: inset 0 2px 3px #0005; }
+  .audio-switch::after { background: var(--cap-face); border-color: var(--cap-border); box-shadow: inset 0 1px var(--highlight), 0 1px 2px #0004; }
   .audio-switch[aria-checked="true"] { color: var(--accent); border-top-color: var(--accent); border-right-color: transparent; border-bottom-color: transparent; border-left-color: transparent; }
-  .audio-switch[aria-checked="true"]::after { background: linear-gradient(#ffe0a1, #edb658); border-color: #ffe0a1 #a97d32 #896423 #f1cd83; }
-  .audio-exact input { background: linear-gradient(#192211, #26301d); border-color: #121d0c #525f43 #859370 #394b2b; box-shadow: inset 0 2px 5px #070c05cc, inset 1px 0 2px #0008, 0 1px #d6d7aa44; }
+  .audio-switch[aria-checked="true"]::after { background: var(--accent); border-color: var(--accent); }
+  .audio-exact input { background: var(--track); border-color: var(--track-edge) var(--line) var(--line) var(--track-edge); box-shadow: inset 0 2px 4px #0003, 0 1px var(--highlight); }
+
+  .safety-note { color: var(--warning); border-left-color: var(--warning); }
 
   /* Sliders keep their original tactile caps, recessed tracks and native semantics. */
-  .fader::-moz-range-track { height: 5px; background: #11180e; border-top: 1px solid #0b1108; border-bottom: 1px solid #858e72; box-shadow: inset 0 2px 4px #000e, 0 1px #ffffff25; }
-  .fader::-moz-range-progress { height: 4px; background: #11180e; }
+  .fader::-moz-range-track { height: 5px; background: var(--track); border-top: 1px solid var(--track-edge); border-bottom: 1px solid var(--line); box-shadow: inset 0 2px 3px #0005, 0 1px var(--highlight); }
+  .fader::-moz-range-progress { height: 4px; background: var(--track); }
   .fader::-moz-range-thumb { border-color: var(--cap-border); border-radius: 2px; background: var(--thumb-groove), var(--cap-face); box-shadow: var(--cap-shadow); }
-  .fader::-webkit-slider-runnable-track { height: 5px; background: #11180e; border-top: 1px solid #0b1108; border-bottom: 1px solid #858e72; box-shadow: inset 0 2px 3px #000b; }
+  .fader::-webkit-slider-runnable-track { height: 5px; background: var(--track); border-top: 1px solid var(--track-edge); border-bottom: 1px solid var(--line); box-shadow: inset 0 2px 3px #0005, 0 1px var(--highlight); }
   .fader::-webkit-slider-thumb { border-color: var(--cap-border); border-radius: 2px; background: var(--thumb-groove), var(--cap-face); box-shadow: var(--cap-shadow); }
 
   /* Preserve compact outlined shortcut keys and their stable hit targets. */
-  #configView .hotkey-row { border-bottom-color: #5b6950; }
+  #configView .hotkey-row { border-bottom-color: var(--soft-rule); }
   #configView .hotkey-button { background: transparent; box-shadow: none; filter: none; }
-  #configView .hotkey-button::before { content: ""; position: absolute; inset: 5px 0; z-index: -1; pointer-events: none; border: 1px solid #778966; border-radius: 2px; background: #19281555; }
-  #configView .hotkey-button:hover:not(:disabled) { background: transparent; filter: none; box-shadow: none; color: #ffe0a3; }
-  #configView .hotkey-button:hover:not(:disabled)::before { border-color: #d5bd83; background: #34472b; }
-  #configView .hotkey-button[aria-pressed="true"] { color: #ffe1a1; background: transparent; box-shadow: none; }
-  #configView .hotkey-button[aria-pressed="true"]::before { border-color: #e2b362; background: #41371f; }
+  #configView .hotkey-button::before { content: ""; position: absolute; inset: 5px 0; z-index: -1; pointer-events: none; border: 1px solid var(--line); border-radius: 2px; background: var(--quiet-face); }
+  #configView .hotkey-button:hover:not(:disabled) { background: transparent; filter: none; box-shadow: none; color: var(--accent); }
+  #configView .hotkey-button:hover:not(:disabled)::before { border-color: var(--accent); background: var(--hover-face); }
+  #configView .hotkey-button[aria-pressed="true"] { color: var(--accent); background: transparent; box-shadow: none; }
+  #configView .hotkey-button[aria-pressed="true"]::before { border-color: var(--accent); background: var(--selected-face); }
   #configView .hotkey-button:active:not(:disabled) { transform: none; box-shadow: none; }
   input:disabled { box-shadow: none; }
   button:disabled { opacity: .48; filter: none; }
 }
 
 /* No movement on button presses; focus and pressed states do not rely on depth. */
-button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid #fff2be; outline-offset: 3px; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media (forced-colors: active) {
   .app, .app *, .app *::before, .app *::after { text-shadow: none !important; box-shadow: none !important; filter: none !important; }
   .app, button, input { background: Canvas !important; }

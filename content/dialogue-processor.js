@@ -6,7 +6,7 @@ const rnnoise = createRNNWasmModuleSync();
 class VideoDialogueProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
-    if (sampleRate !== 48000) throw new Error("Dialogue focus requires a 48 kHz audio context");
+    if (sampleRate !== 48000) throw new Error("Voice Clarity requires a 48 kHz audio context");
     this.dsp = new globalThis.VideoDialogueDSP(rnnoise);
     this.dsp.targetMix = this.dsp.mix = (options.processorOptions?.mix ?? 100) / 100;
     this.volume = 1;

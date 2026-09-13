@@ -3,6 +3,7 @@ Requires Selenium, cached geckodriver, Firefox Developer Edition. No downloads,
 user-profile changes or speaker output. Test-only popup driver is never packaged.
 """
 import argparse
+import base64
 import io
 import json
 import os
@@ -38,6 +39,8 @@ DRIVER = r"""
       speed: el('speedValue').textContent, savedDefault: el('defaultSpeed').textContent,
       savingDefault: el('saveDefault').disabled, notice: el('notice').textContent,
       bodyHeight: body.getBoundingClientRect().height, appHeight: document.querySelector('.app').getBoundingClientRect().height,
+      frameRadius: getComputedStyle(document.querySelector('.app')).borderRadius,
+      rootBackground: getComputedStyle(root).backgroundColor, bodyBackground: getComputedStyle(body).backgroundColor,
       rootClient: root.clientHeight, rootScroll: root.scrollHeight, bodyClient: body.clientHeight, bodyScroll: body.scrollHeight,
       rootWidth: root.clientWidth, bodyWidth: body.clientWidth, scrollWidth: root.scrollWidth,
       scrollTop: document.scrollingElement.scrollTop, bodyMax: getComputedStyle(body).maxHeight};
@@ -120,6 +123,8 @@ def main():
     parser.add_argument('--height-cap', type=int, help='Test-only native-browser height constraint (simulates less available space)')
     parser.add_argument('--label', default='native-popup')
     parser.add_argument('--observe-only', action='store_true')
+    parser.add_argument('--screenshots', action='store_true', help='Capture actual popup content via Firefox drawSnapshot, not detached OS chrome')
+    parser.add_argument('--browser-theme', choices=('light', 'dark'), help='Enable a built-in Firefox theme in this disposable profile only')
     args = parser.parse_args()
     if args.height_cap is not None and not 200 <= args.height_cap <= 600:
         parser.error('--height-cap must be between 200 and 600 CSS pixels')
@@ -178,8 +183,21 @@ def main():
                 browser.install_addon(str(stage), temporary=True)
                 browser.get(origin + '/')
                 browser.set_context('chrome')
+                theme_result = None
+                if args.browser_theme:
+                    theme_result = browser.execute_async_script("""const done = arguments[arguments.length - 1];
+                      const {AddonManager} = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
+                      AddonManager.getAddonByID('firefox-compact-' + arguments[0] + '@mozilla.org')
+                        .then(async addon => { if (!addon) throw new Error('Built-in theme missing'); await addon.enable(); return {id:addon.id, active:addon.isActive}; })
+                        .then(done, error => done(String(error)));""", args.browser_theme)
+                    if not isinstance(theme_result, dict) or not theme_result.get('active'):
+                        raise AssertionError(theme_result)
                 browser.execute_script("CustomizableUI.addWidgetToArea('video-speed_local-browser-action', CustomizableUI.AREA_NAVBAR)")
                 WebDriverWait(browser, 15).until(lambda d: d.find_element(By.ID, 'video-speed_local-BAP').is_displayed())
+                if args.screenshots:
+                    # The toolbar icon is in the main chrome window (unlike the
+                    # detached popup), so an ordinary element capture is valid.
+                    browser.find_element(By.ID, 'video-speed_local-BAP').screenshot(str(output / (args.label + '-toolbar.png')))
                 browser.find_element(By.ID, 'video-speed_local-BAP').click()
                 if args.height_cap:
                     WebDriverWait(browser, 15).until(lambda d: d.find_elements(By.CSS_SELECTOR, '.webextension-popup-browser'))
@@ -195,6 +213,27 @@ def main():
                                 raise AssertionError(result['error'])
                             break
                         result['native'] = browser.execute_script("const b = document.querySelector('.webextension-popup-browser'); return b?.getBoundingClientRect().toJSON()")
+                        if result['name'] in ('main', 'audio', 'dialogue', 'configuration'):
+                            result['requestedBrowserTheme'] = theme_result
+                            result['chromePanel'] = browser.execute_script("""const b = document.querySelector('.webextension-popup-browser'), p = b?.closest('panel');
+                              return p ? {id:p.id, radius:getComputedStyle(p).borderRadius, background:getComputedStyle(p).backgroundColor,
+                                arrowBackground:getComputedStyle(p).getPropertyValue('--arrowpanel-background').trim(),
+                                panelBackground:getComputedStyle(p).getPropertyValue('--panel-background').trim(),
+                                scheme:getComputedStyle(p).colorScheme, chromeTheme:document.documentElement.getAttribute('lwtheme-id'),
+                                browserBackground:getComputedStyle(b).backgroundColor, bounds:p.getBoundingClientRect().toJSON()} : null;""")
+                            if args.screenshots:
+                                # Ordinary WebDriver screenshots miss headless detached popup widgets.
+                                # Capture the real popup browsing context. Firefox may composite its
+                                # native panel colour even when a transparent snapshot is requested.
+                                image = browser.execute_async_script("""const done = arguments[arguments.length - 1];
+                                  const b = document.querySelector('.webextension-popup-browser'), r = b.getBoundingClientRect();
+                                  b.browsingContext.currentWindowGlobal.drawSnapshot(new DOMRect(0, 0, r.width, r.height), window.devicePixelRatio, 'transparent').then(bitmap => {
+                                    const c = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas'); c.width = bitmap.width; c.height = bitmap.height;
+                                    c.getContext('2d').drawImage(bitmap, 0, 0); bitmap.close(); done({png:c.toDataURL('image/png').split(',')[1]});
+                                  }).catch(error => done({error:String(error)}));""")
+                                if image.get('error'):
+                                    raise AssertionError(image['error'])
+                                (output / (args.label + '-' + result['name'] + '.png')).write_bytes(base64.b64decode(image['png']))
                         results.append(result)
                         print(json.dumps(result), flush=True)
                     finally:
@@ -209,6 +248,8 @@ def main():
         cap = args.height_cap or 600
         for r in results:
             assert r['innerWidth'] == 360 and r['scrollWidth'] == 360, r
+            assert r['frameRadius'] == '8px', r
+            assert r['rootBackground'] == 'rgba(0, 0, 0, 0)' and r['bodyBackground'] == 'rgba(0, 0, 0, 0)', r
             assert r['innerHeight'] <= cap + 1, r
             assert r['native'] and r['native']['height'] <= cap + 1, r
             assert r['bodyMax'] == 'none' and abs(r['bodyHeight'] - r['appHeight']) < 1, r

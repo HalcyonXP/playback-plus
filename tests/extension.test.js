@@ -233,7 +233,12 @@ test("protected-page settings work and persistence failures are reported without
   await settle();
   const { elements } = h.createPopup(1);
   await settle();
-  assert.match(elements.availabilityText.textContent, /Unavailable on this page/);
+  assert.equal(elements.availabilityText.textContent, "");
+  assert.equal(elements.availability.hidden, true);
+  assert.equal(elements.saveDefault.disabled, false);
+  elements.configButton.dispatch("click");
+  assert.equal(elements.configView.hidden, false);
+  assert.equal(elements.toggleKeyButton.disabled, false);
   h.failSync = true;
   elements.speedRange.value = "3";
   elements.speedRange.dispatch("input");
@@ -260,7 +265,7 @@ test("manifest and popup expose tab-local media control and session persistence"
   const manifest = JSON.parse(readSource("manifest.json"));
   const popup = readSource("popup/popup.html");
   assert.equal(manifest.name, "Playback Plus");
-  assert.equal(manifest.version, "1.8.0");
+  assert.equal(manifest.version, "1.8.1");
   assert.equal(manifest.action.default_title, "Playback Plus");
   assert.equal(manifest.browser_specific_settings.gecko.id, "video-speed@local");
   assert.match(popup, /<title>Playback Plus<\/title>/);

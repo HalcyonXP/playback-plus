@@ -45,7 +45,7 @@
           <span id="availabilityText"></span>
         </div>
         <button id="audioButton" class="audio-entry" type="button" aria-controls="audioView"><span class="entry-copy"><strong>Audio sync</strong><small id="audioSummary">Loading…</small></span><span class="entry-arrow" aria-hidden="true">›</span></button>
-        <button id="dialogueButton" class="audio-entry dialogue-entry" type="button" aria-controls="dialogueView"><span class="entry-copy"><strong>Dialogue focus</strong><small id="dialogueSummary">Loading…</small></span><span class="entry-arrow" aria-hidden="true">›</span></button>
+        <button id="dialogueButton" class="audio-entry dialogue-entry" type="button" aria-controls="dialogueView"><span class="entry-copy"><strong>Voice Clarity</strong><small id="dialogueSummary">Loading…</small></span><span class="entry-arrow" aria-hidden="true">›</span></button>
         <button id="configButton" class="navigation-button config-button" type="button" aria-controls="configView"><span>Configuration</span><small>Shared keys →</small></button>
       </div>
 
@@ -65,12 +65,12 @@
           <p>For this tab only. Reloading keeps the setting; visiting a different page turns Audio sync Off and resets the delay.</p>
           <p>Some websites or players may not support audio adjustments.</p>
           <p>Your audio is unchanged until you turn on an audio feature. After using one, turn both Off and reload to fully restore the player's normal sound.</p>
-          <p>Turning Audio sync Off removes only its delay, not the small delay added by Dialogue focus.</p>
+          <p>Turning Audio sync Off removes only its delay, not the small delay added by Voice Clarity.</p>
         </details>
       </section>
 
       <section id="dialogueView" aria-labelledby="dialogueHeading" hidden>
-        <div class="config-heading"><button id="dialogueBackButton" class="navigation-button" type="button">← Back</button><h2 id="dialogueHeading">Dialogue focus</h2><button id="dialogueEnabled" class="audio-switch" type="button" role="switch" aria-label="Dialogue focus" aria-checked="false" disabled>Off</button></div>
+        <div class="config-heading"><button id="dialogueBackButton" class="navigation-button" type="button">← Back</button><h2 id="dialogueHeading">Voice Clarity</h2><button id="dialogueEnabled" class="audio-switch" type="button" role="switch" aria-label="Voice Clarity" aria-checked="false" disabled>Off</button></div>
         <section class="speed-panel dialogue-panel" aria-label="This tab’s dialogue enhancement">
           <div class="speed-heading"><output id="dialogueValue" aria-label="Filter mix" class="dialogue-value" for="dialogueMix">100%</output></div>
           <div class="range-wrap">

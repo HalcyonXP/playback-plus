@@ -115,11 +115,18 @@ def main():
                     document.scrollingElement.scrollTop = 0; document.body.scrollTop = 0;
                     const visible = [...document.querySelectorAll('main *')].filter(e => e.getClientRects().length && e.getBoundingClientRect().height);
                     return {width: document.documentElement.scrollWidth,
+                      frameRadius: getComputedStyle(document.querySelector('.app')).borderRadius,
+                      rateColour: getComputedStyle(document.getElementById('speedValue')).color,
+                      warningColours: ['audioSafety','dialogueSafety'].map(id=>getComputedStyle(document.getElementById(id)).color),
                       overflow: visible.filter(e => { const r = e.getBoundingClientRect(); return r.left < -1 || r.right > 361; }).map(e => e.id || e.tagName),
                       height: Math.min(innerHeight, document.body.getBoundingClientRect().height),
                       naturalHeight: document.body.getBoundingClientRect().height,
                       scrollHeight: document.documentElement.scrollHeight, clientHeight: document.documentElement.clientHeight};
                 ''')
+                assert metrics['frameRadius'] == '8px', name
+                if not args.forced_colors:
+                    assert metrics['rateColour'] == 'rgb(155, 202, 255)', name
+                    assert metrics['warningColours'] == ['rgb(241, 199, 132)'] * 2, name
                 playback = not find('mainView').get_attribute('hidden')
                 assert find('saveDefault').is_displayed() == playback, name
                 if playback:
@@ -255,7 +262,7 @@ def main():
                 switch = find(view + 'Enabled')
                 wait.until(lambda _: switch.is_enabled())
                 assert switch.get_attribute('role') == 'switch'
-                assert switch.get_attribute('aria-label') == ('Audio sync' if view == 'audio' else 'Dialogue focus')
+                assert switch.get_attribute('aria-label') == ('Audio sync' if view == 'audio' else 'Voice Clarity')
                 assert switch.get_attribute('aria-checked') == 'false'
                 layout(view + '-off')
                 switch.send_keys(Keys.SPACE)
@@ -308,6 +315,47 @@ def main():
                 wait.until(lambda _: not details.get_attribute('open'))
                 find(view + 'BackButton').click()
                 assert driver.execute_script('return document.activeElement.id') == view + 'Button'
+            # The approved no-media design has neither inline availability copy
+            # nor an overlay. Empty/restricted/paused pages are not engine failures.
+            absent = 'fixtureApi.setAudioReport({media:0,eligible:0,connected:0,dialogueConnected:0})'
+            driver.execute_script(absent)
+            find('audioButton').click()
+            wait.until(lambda _: not find('audioEnabled').is_enabled())
+            assert not find('audioStatus').text and not find('audioError').text
+            layout('audio-no-media')
+            find('audioBackButton').click()
+            assert not find('availabilityText').text and find('saveDefault').is_enabled()
+            layout('main-no-media')
+            find('dialogueButton').click()
+            wait.until(lambda _: not find('dialogueEnabled').is_enabled())
+            assert not find('dialogueStatus').text and not find('dialogueError').text
+            layout('dialogue-no-media')
+            find('dialogueBackButton').click()
+            find('configButton').click()
+            assert find('toggleKeyButton').is_enabled()
+            assert not driver.find_elements(By.CSS_SELECTOR, '.unavailable-overlay, .unavailable-message, [inert]')
+            layout('configuration-no-media')
+            find('backButton').click()
+            driver.execute_script('fixtureApi.setAudioReport({})')
+            find('audioButton').click()
+            wait.until(lambda _: find('audioEnabled').is_enabled())
+            find('audioEnabled').click()
+            wait.until(lambda _: find('audioEnabled').get_attribute('aria-checked') == 'true' and find('audioEnabled').is_enabled())
+            driver.execute_script("return fixtureApi.message({type:'DIALOGUE_ENABLE',enabled:true})")
+            driver.execute_script(absent)
+            wait.until(lambda _: find('audioSummary').get_attribute('textContent').endswith('selected') and not find('audioStatus').text)
+            assert find('audioEnabled').is_enabled(), 'Off remains usable after media disappears'
+            layout('audio-no-media-on')
+            find('audioBackButton').click()
+            find('dialogueButton').click()
+            wait.until(lambda _: find('dialogueSummary').get_attribute('textContent').endswith('selected') and not find('dialogueStatus').text)
+            assert find('dialogueEnabled').is_enabled(), 'Filter Off remains usable after media disappears'
+            layout('dialogue-no-media-on')
+            driver.execute_script('fixtureApi.setAudioReport({})')
+            wait.until(lambda _: find('dialogueStatus').text.startswith('On'))
+            driver.execute_script("return fixtureApi.message({type:'AUDIO_SYNC_ENABLE',enabled:false})")
+            driver.execute_script("return fixtureApi.message({type:'DIALOGUE_ENABLE',enabled:false})")
+            find('dialogueBackButton').click()
             find('configButton').click()
             instruction = 'Choose a shortcut. Press a key. Escape clears it.'
             assert find('hotkeyHint').text == instruction
@@ -358,7 +406,7 @@ def main():
             summary.send_keys(Keys.ENTER)
             wait.until(lambda _: find('shortcutDetails').get_attribute('open'))
             layout('configuration-help')
-            print(json.dumps({'passed': True, 'checks': 'Graphite ruled action materials, centred default row, non-interactive playback-only readout, snapshot Save/re-save, visual-only preset and +/- glide and interruption, stable compact hotkey targets/fixed instruction/separate feedback, stationary flat press state, centred +/- strokes, speed/mix keyboard endpoints, exact-delay bounds/errors, partial/failure status, shortcut capture, layout, switches/help and Back focus', 'views': results}, indent=2))
+            print(json.dumps({'passed': True, 'checks': 'GB1 ice-blue readouts, amber warnings, rounded frame, Graphite ruled action materials, centred default row, non-interactive playback-only readout, snapshot Save/re-save, visual-only preset and +/- glide and interruption, stable compact hotkey targets/fixed instruction/separate feedback, stationary flat press state, centred +/- strokes, speed/mix keyboard endpoints, exact-delay bounds/errors, partial/failure status, shortcut capture, layout, switches/help and Back focus', 'views': results}, indent=2))
     finally:
         server.shutdown()
         server.server_close()

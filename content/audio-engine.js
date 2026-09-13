@@ -90,7 +90,7 @@
       record.filterReady = false;
       const fail = message => {
         if (record.filter !== filter) return;
-        removeFilter(record, `${message}. Using unfiltered audio; turn Dialogue focus Off/On to retry.`);
+        removeFilter(record, `${message}. Using unfiltered audio; turn Voice Clarity Off/On to retry.`);
       };
       filter.onprocessorerror = () => fail("RNNoise processor failed");
       filter.port.onmessage = ({ data: m }) => {

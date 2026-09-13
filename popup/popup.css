@@ -1,24 +1,26 @@
 :root {
   color-scheme: dark;
-  --bg: #30332e;
-  --line: #69715b;
-  --text: #e2e1cf;
-  --muted: #bec2ad;
-  --accent: #edb658;
-  --key: #dedeca;
-  --key-ink: #292d24;
-  --danger: #ffc0a6;
+  --bg: #20242b;
+  --line: #7d8a9b;
+  --text: #eef3fb;
+  --muted: #bec8d7;
+  --accent: #9bcaff;
+  --key: #7d8a9b;
+  --key-ink: #eef3fb;
+  --danger: #ffb8b8;
   --mono: Consolas, "Liberation Mono", "Courier New", monospace;
   font-family: Bahnschrift, "Arial Narrow", Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; background: var(--bg); color: var(--text); }
+html, body { margin: 0; background: transparent; color: var(--text); }
 /* Firefox sizes the native popup from the body's natural height. Do not cap the
    body or use viewport-height sizing: that can prevent growth after help opens.
    The browser caps the viewport at 600px (or less available screen space).
    Only the root scrolls when content genuinely exceeds that viewport. */
-html { width: 360px; overflow-x: hidden; overflow-y: auto; scrollbar-color: #8a9279 var(--bg); scrollbar-width: thin; }
+/* Transparent document corners let Firefox supply the native popup surround.
+   Do not add the study canvas, fixed heights, clipping or an outer cast shadow. */
+html { width: 360px; overflow-x: hidden; overflow-y: auto; scrollbar-color: var(--line) var(--bg); scrollbar-width: thin; }
 body { width: 360px; min-width: 360px; overflow: visible; }
 button, input { font: inherit; }
 button { color: inherit; cursor: pointer; }
@@ -29,12 +31,13 @@ h1, h2, h3, p { margin: 0; }
 .app {
   position: relative;
   padding: 18px 24px;
-  border: 1px solid #1a1e17;
-  box-shadow: inset 0 1px #696d60, inset 0 -3px #1d201b;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: inset 0 1px #7d8a9b, inset 0 -3px #16191e;
 }
 .faceplate-screws { display: contents; }
-.screw { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #191c17; box-shadow: 0 1px #69705c; pointer-events: none; }
-.screw::after { content: ""; position: absolute; width: 4px; height: 1px; top: 3px; left: 1.5px; background: #7b846a; transform: rotate(-35deg); }
+.screw { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #16191e; box-shadow: 0 1px #7d8a9b; pointer-events: none; }
+.screw::after { content: ""; position: absolute; width: 4px; height: 1px; top: 3px; left: 1.5px; background: #7d8a9b; transform: rotate(-35deg); }
 .tl { top: 10px; left: 10px; } .tr { top: 10px; right: 10px; }
 .bl { bottom: 10px; left: 10px; } .br { bottom: 10px; right: 10px; }
 /* B2b — Ruled readout. Information is flat; only Save has a button surface.
@@ -61,13 +64,13 @@ h1, h2, h3, p { margin: 0; }
 #increaseButton > span::after { width: 2px; height: 12px; }
 .step-button:hover:not(:disabled), .navigation-button:hover:not(:disabled) { color: var(--accent); }
 .range-wrap { position: relative; padding-top: 9px; }
-.range-wrap::before { content: ""; position: absolute; left: 9px; right: 9px; top: 0; height: 9px; background: repeating-linear-gradient(to right, #87916f 0 1px, transparent 1px calc(100% / 16)); pointer-events: none; }
+.range-wrap::before { content: ""; position: absolute; left: 9px; right: 9px; top: 0; height: 9px; background: repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px calc(100% / 16)); pointer-events: none; }
 .fader { display: block; width: 100%; height: 30px; margin: 0; padding: 0; appearance: none; background: transparent; cursor: pointer; }
-.fader::-moz-range-track { height: 4px; background: #13190e; border-bottom: 1px solid #7b8468; border-radius: 0; }
-.fader::-moz-range-progress { height: 4px; background: #13190e; }
-.fader::-moz-range-thumb { width: 16px; height: 26px; border: 1px solid #aeb49b; border-radius: 1px; background: linear-gradient(90deg, #e4e0cb 0 7px, #505944 7px 8px, #e4e0cb 8px); box-shadow: 0 2px 2px #171d12; }
-.fader::-webkit-slider-runnable-track { height: 4px; background: #13190e; border-bottom: 1px solid #7b8468; }
-.fader::-webkit-slider-thumb { appearance: none; margin-top: -12px; width: 18px; height: 28px; border: 1px solid #aeb49b; border-radius: 1px; background: linear-gradient(90deg, #e4e0cb 0 7px, #505944 7px 8px, #e4e0cb 8px); box-shadow: 0 2px 2px #171d12; }
+.fader::-moz-range-track { height: 4px; background: #121418; border-bottom: 1px solid var(--line); border-radius: 0; }
+.fader::-moz-range-progress { height: 4px; background: #121418; }
+.fader::-moz-range-thumb { width: 16px; height: 26px; border: 1px solid var(--line); border-radius: 1px; background: linear-gradient(90deg, var(--key) 0 7px, #16191e 7px 8px, var(--key) 8px); box-shadow: 0 2px 2px #16191e; }
+.fader::-webkit-slider-runnable-track { height: 4px; background: #121418; border-bottom: 1px solid var(--line); }
+.fader::-webkit-slider-thumb { appearance: none; margin-top: -12px; width: 18px; height: 28px; border: 1px solid var(--line); border-radius: 1px; background: linear-gradient(90deg, var(--key) 0 7px, #16191e 7px 8px, var(--key) 8px); box-shadow: 0 2px 2px #16191e; }
 .range-limits { display: flex; justify-content: space-between; margin-top: 2px; color: var(--muted); font: 10px/1.4 var(--mono); }
 .presets { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; margin: 13px 0 16px; }
 .presets button { min-width: 0; min-height: 36px; padding: 7px 0; border: 0; border-top: 1px solid var(--line); border-right: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--text); font: 700 12px/1.5 var(--mono); }
@@ -83,17 +86,17 @@ h1, h2, h3, p { margin: 0; }
 .entry-arrow { color: var(--accent); font: 25px Arial, sans-serif; }
 .audio-entry:hover strong, .config-button:hover span { color: var(--accent); }
 .navigation-button { padding: 8px 10px; font-size: 12px; line-height: 1.4; }
-.config-button { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 10px; margin-top: 1px; border: 0; border-top: 1px solid #989f87; border-radius: 0; background: transparent; box-shadow: none; color: var(--text); text-align: left; font-size: 10px; letter-spacing: .8px; text-transform: uppercase; }
+.config-button { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 10px; margin-top: 1px; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; box-shadow: none; color: var(--text); text-align: left; font-size: 10px; letter-spacing: .8px; text-transform: uppercase; }
 .config-button small { color: var(--accent); font-size: 9px; }
 .config-button:hover:not(:disabled), .config-button:active:not(:disabled) { background: transparent; box-shadow: none; transform: none; }
 
-/* Both audio detail views share the deck's amber instruments and engraved labels. */
+/* Both audio detail views share the deck's ice-blue instruments and engraved labels. */
 .config-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
 .config-heading h2 { font-size: 15px; font-weight: 500; }
 .config-heading .navigation-button { flex: 0 0 auto; padding: 7px 8px; font-size: 11px; }
 .audio-switch { position: relative; flex: 0 0 auto; margin-left: auto; min-width: 75px; min-height: 32px; padding: 6px 6px 6px 43px; border: 1px solid transparent; border-top-color: var(--line); border-radius: 0; background: transparent; color: var(--text); font: 11px/1.4 var(--mono); text-transform: uppercase; }
-.audio-switch::before { content: ""; position: absolute; left: 6px; top: calc(50% - 9px); width: 30px; height: 18px; border: 1px solid #7d886b; background: #141b10; }
-.audio-switch::after { content: ""; position: absolute; left: 9px; top: calc(50% - 6px); width: 11px; height: 12px; border: 1px solid #d0d3bc; background: var(--key); transition: transform 120ms ease; }
+.audio-switch::before { content: ""; position: absolute; left: 6px; top: calc(50% - 9px); width: 30px; height: 18px; border: 1px solid var(--line); background: #121418; }
+.audio-switch::after { content: ""; position: absolute; left: 9px; top: calc(50% - 6px); width: 11px; height: 12px; border: 1px solid var(--line); background: var(--key); transition: transform 120ms ease; }
 .audio-switch[aria-checked="true"] { color: var(--accent); border-color: var(--accent); }
 .audio-switch[aria-checked="true"]::after { transform: translateX(13px); background: var(--accent); border-color: var(--accent); }
 .audio-switch:hover:not(:disabled) { border-top-color: var(--accent); }
@@ -104,13 +107,13 @@ h1, h2, h3, p { margin: 0; }
 #audioDecrease { border-right-color: var(--line); }
 .audio-exact { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 14px 0 18px; color: var(--muted); font-size: 12px; }
 .audio-exact > span { white-space: nowrap; }
-.audio-exact input { width: 78px; padding: 7px 4px; border: 1px solid #909b7c; border-radius: 1px; background: #22291b; color: var(--accent); font: 14px var(--mono); }
+.audio-exact input { width: 78px; padding: 7px 4px; border: 1px solid var(--line); border-radius: 1px; background: #121418; color: var(--accent); font: 14px var(--mono); }
 .audio-exact button { padding: 7px 8px; font-size: 11px; }
 .dialogue-panel .range-wrap { margin: 16px 0 18px; }
 .config-help { margin: 12px 0; color: var(--muted); font: 12px/1.5 Arial, sans-serif; overflow-wrap: anywhere; }
 #audioStatus, #dialogueStatus { padding-top: 12px; border-top: 1px solid var(--line); }
 #audioStatus:empty, #dialogueStatus:empty { display: none; }
-.safety-note { margin: 12px 0; padding-left: 10px; border-left: 2px solid var(--accent); color: #f2cb8b; font: 12px/1.5 Arial, sans-serif; }
+.safety-note { margin: 12px 0; padding-left: 10px; border-left: 2px solid var(--accent); color: #f1c784; font: 12px/1.5 Arial, sans-serif; }
 .help-details { margin-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font: 12px/1.5 Arial, sans-serif; }
 .help-details summary { padding: 12px 2px; color: var(--text); cursor: pointer; }
 .help-details summary:hover { color: var(--accent); }
@@ -136,14 +139,14 @@ h1, h2, h3, p { margin: 0; }
    and unusually long binding names must never reflow the associated function. */
 .hotkey-button { position: relative; isolation: isolate; flex: 0 0 72px; width: 72px; min-width: 72px; max-width: 72px; height: 34px; min-height: 34px; padding: 7px 4px; border: 0; border-radius: 0; background: transparent; color: var(--accent); font: 11px/1.5 var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hotkey-button:hover { border-color: var(--accent); }
-.hotkey-button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: #252a1d; }
+.hotkey-button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: #20242b; }
 
 /* Animate only the visual thumb; native range value and playback update immediately. */
 #speedRange::-moz-range-thumb { transform: translateX(var(--speed-thumb-offset, 0px)); }
 #speedRange::-webkit-slider-thumb { transform: translateX(var(--speed-thumb-offset, 0px)); }
 
 button:disabled, input:disabled { cursor: default; opacity: .48; }
-button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid #fff2be; outline-offset: 3px; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   #speedRange::-moz-range-thumb { transform: none; }
   #speedRange::-webkit-slider-thumb { transform: none; }

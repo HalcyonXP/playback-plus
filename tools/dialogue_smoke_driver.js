@@ -3,7 +3,7 @@ await set(audio.id, 1);
 ad.querySelector('#backButton').click();
 ad.querySelector('#dialogueButton').click();
 check(!ad.querySelector('#dialogueView').hidden && ad.querySelector('#audioView').hidden && ad.querySelector('#mainView').hidden,
-  'Dialogue focus is a separate popup view');
+  'Voice Clarity is a separate popup view');
 const dialogueHelp = ad.querySelector('#dialogueDetails');
 check(!dialogueHelp.open && !ad.querySelector('#dialogueSafety').closest('details')
   && ad.querySelector('#dialogueSafety').textContent.includes('suddenly louder'), 'dialogue fallback warning remains visible with technical help collapsed');
@@ -27,7 +27,7 @@ await waitFor(async () => {
   check(!s.state.enabled && s.state.delayMs === 653, 'real RNNoise connects to video/audio, iframe, dynamic and shadow media independently of Audio Sync');
 });
 check(!(await request(audioOther.id, 'AUDIO_SYNC_GET')).dialogueEnabled, 'RNNoise does not enable another tab');
-check(ad.documentElement.scrollWidth <= 360, 'Dialogue focus fits the 360px popup');
+check(ad.documentElement.scrollWidth <= 360, 'Voice Clarity fits the 360px popup');
 const original = await page(async () => {
   const one = document.getElementById('one');
   const entry = window.__audioTest.nodes.find(n => n.name === 'video-dialogue-focus');

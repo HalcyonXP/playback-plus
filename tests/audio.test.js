@@ -133,7 +133,7 @@ test("audio popup uses exact input, fixed step, tab-local status and failure-saf
   assert.equal(e.audioToggleKeyButton.textContent, "Not set");
 });
 
-test("popup distinguishes speed connectivity, selected Off settings and audio coverage", async () => {
+test("popup keeps routine unavailability quiet while preserving audio coverage and recovery feedback", async () => {
   const h = createHarness();
   h.createFrame(1);
   const { elements: e } = h.createPopup(1);
@@ -150,15 +150,16 @@ test("popup distinguishes speed connectivity, selected Off settings and audio co
   };
   await report({ unavailable: true, eligible: 0 });
   assert.equal(e.audioSummary.textContent, "Off · 0 ms selected");
-  assert.match(e.audioStatus.textContent, /Audio controls aren't available/);
-  assert.match(e.dialogueStatus.textContent, /Audio controls aren't available/);
+  assert.equal(e.audioStatus.textContent, "");
+  assert.equal(e.dialogueStatus.textContent, "");
   assert.doesNotMatch(e.audioStatus.textContent, /Native audio untouched/);
   assert.equal(e.availability.hidden, true);
   assert.equal(e.availabilityText.textContent, "");
   await report({ contextState: "running", connected: 1 });
   assert.match(e.audioStatus.textContent, /^$/);
   await report({ eligible: 0, media: 0 });
-  assert.match(e.audioStatus.textContent, /Start a video or audio player/);
+  assert.equal(e.audioStatus.textContent, "");
+  assert.equal(e.dialogueStatus.textContent, "");
   assert.equal(e.audioEnabled.disabled, true);
   await report({ unsupported: 1 });
   assert.equal(e.audioStatus.textContent, "", "Off state does not report routine routing details");

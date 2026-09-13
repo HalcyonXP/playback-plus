@@ -2,7 +2,7 @@
 
 Live gallery: https://halcyonxp.github.io/playback-plus/demo/
 
-This is a **fictional UI demonstration**, not an installable add-on. It previews nine experimental colour palettes and 8 px rounded outer frames. No real media or audio is processed. Settings and shortcut assignments are memory-only and reset on reload. Theme links use `?theme=n1` through the IDs in `palettes.json`.
+This is a **fictional UI demonstration**, not an installable add-on. It previews the released GB1 — Charcoal / Ice blue theme alongside eight experimental palettes, all with 8 px rounded outer frames. No real media or audio is processed. Settings and shortcut assignments are memory-only and reset on reload. Theme links use `?theme=n1` through the IDs in `palettes.json`.
 
 ## Source and build
 

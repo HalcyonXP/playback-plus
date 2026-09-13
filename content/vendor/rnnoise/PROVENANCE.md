@@ -2,7 +2,7 @@
 
 `rnnoise-sync.js` is the **unmodified** Jitsi rnnoise-wasm synchronous ES module,
 including its embedded WebAssembly and default RNNoise model. It is loaded locally
-only when Dialogue focus is enabled; no model/audio download or upload occurs at runtime.
+only when Voice Clarity is enabled; no model/audio download or upload occurs at runtime.
 
 - Repository: https://github.com/jitsi/rnnoise-wasm
 - Pinned commit: `cb529a59a8478fe604e57986fc96afdaecfa6fb7`

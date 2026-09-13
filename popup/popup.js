@@ -182,9 +182,10 @@
   }
 
   function renderAvailability() {
-    // Ordinary readiness is not customer feedback. Keep only the useful limitation.
-    elements.availability.hidden = state.tabAvailable !== false;
-    elements.availabilityText.textContent = state.tabAvailable === false ? "Unavailable on this page" : "";
+    // Routine page/bridge unavailability stays quiet. Settings remain usable;
+    // persistence and actionable failures are reported separately in notice.
+    elements.availability.hidden = true;
+    elements.availabilityText.textContent = "";
   }
 
   let defaults = null;
