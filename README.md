@@ -19,8 +19,6 @@
 
 **This release is unsigned.** Permanent installation requires **Firefox Developer Edition or Nightly 142+**. Standard Firefox requires a signed extension; use the temporary option below to try it instead.
 
-If you use the separate **Audio Sync** add-on, disable it first to avoid conflicting audio processing.
-
 1. [Download Playback Plus 1.8.0 (.xpi)](https://github.com/HalcyonXP/playback-plus/releases/download/v1.8.0/playback-plus-1.8.0.xpi) and save the file.
 2. In Developer Edition or Nightly, open `about:config` and set `xpinstall.signatures.required` to `false`. **This disables signature enforcement; only do so if you understand the security implications.**
 3. Open `about:addons` → gear menu → **Install Add-on From File…** and select the XPI.
