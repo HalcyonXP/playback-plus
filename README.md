@@ -8,6 +8,8 @@
 
 *Four views, one compact Graphite panel. Shown with example settings; click the image for a closer look.*
 
+[Explore the colour-theme design demo](https://halcyonxp.github.io/playback-plus/demo/) — a browser-only preview with fictional settings. These experimental themes are not included in the published extension.
+
 ## Make playback work for you
 
 - **Playback speed:** watch or listen at **0.25×–8×**, with quick presets and a one-key toggle back to normal speed.
