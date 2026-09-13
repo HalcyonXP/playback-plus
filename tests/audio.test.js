@@ -25,7 +25,7 @@ test("audio has no inherited defaults; exact values, fixed nudges, reset and tog
   await h.createTab(3);
   assert.deepEqual(await request(h, 3, "GET"), { enabled: false, delayMs: 0, dialogueEnabled: false, dialogueRun: 0, dialogueMix: 100, revision: 0, pageUrl: "https://example.com/3" });
   assert.equal(h.sessions.get(1).speed, 2);
-  assert.deepEqual(h.storedValues, { playbackSpeed: 2, lastNon1xSpeed: 2 }, "no audio preferences or channel history are written to Sync");
+  assert.deepEqual(h.storedValues, { playbackSpeed: 2, lastNon1xSpeed: 2, savedSpeedDefault: { enabled: true, speed: 2 } }, "no audio preferences or channel history are written to Sync");
 });
 
 test("audio validates writes, contains content tab targets and survives event-page suspension", async () => {

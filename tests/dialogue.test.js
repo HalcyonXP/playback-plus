@@ -35,7 +35,7 @@ test("dialogue settings migrate safely, are independent, serialized, tab-local a
   s = await request(h, "AUDIO_SYNC_GET");
   assert.equal(s.dialogueEnabled, false);
   assert.equal(s.dialogueMix, 100);
-  assert.deepEqual(h.storedValues, { playbackSpeed: 2, lastNon1xSpeed: 2 });
+  assert.deepEqual(h.storedValues, { playbackSpeed: 2, lastNon1xSpeed: 2, savedSpeedDefault: { enabled: true, speed: 2 } });
   for (const mix of [-1, 101, 0.5, "42", NaN]) await assert.rejects(request(h, "DIALOGUE_MIX", { mix }));
   await assert.rejects(request(h, "DIALOGUE_ENABLE", { enabled: 1 }));
   h.failSessions = true;

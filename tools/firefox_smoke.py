@@ -66,14 +66,35 @@ DRIVER = r"""
     await fetch(origin + '/started');
     const a = await browser.tabs.create({ url: origin + '/media#a', active: false });
     const b = await browser.tabs.create({ url: origin + '/media#b', active: false });
-    await mediaAt(a.id, 2);
-    await mediaAt(b.id, 2);
+    await mediaAt(a.id, 1);
+    await mediaAt(b.id, 1);
+    const defaults = () => browser.runtime.sendMessage({type: 'VIDEO_SPEED_DEFAULT_GET'});
+    const saveDefault = (tabId = a.id) => browser.runtime.sendMessage({type: 'VIDEO_SPEED_DEFAULT_SET', tabId});
+    check((await defaults()).speed === 1, 'fresh install starts with a fixed 1x saved default');
+    await browser.storage.sync.set({savedSpeedDefault: {enabled: false, speed: 4}});
+    check((await defaults()).speed === 1 && (await defaults()).enabled, 'legacy Off migration preserves the effective new-tab rate rather than its inactive snapshot');
+    await set(a.id, 1.5);
+    check((await defaults()).speed === 1, 'migrated default stops following later speed choices');
+    await saveDefault();
+    await set(a.id, 2);
+    const lockedTab = await browser.tabs.create({ url: origin + '/media#locked', active: false });
+    await mediaAt(lockedTab.id, 1.5);
+    check((await defaults()).speed === 1.5, 'Save Default captures a fixed snapshot and seeds real new tabs');
+    await saveDefault();
+    check((await defaults()).speed === 2, 'Save again replaces the snapshot with the current tab speed');
+    const resavedTab = await browser.tabs.create({ url: origin + '/media#resaved', active: false });
+    await mediaAt(resavedTab.id, 2);
+    await mediaAt(lockedTab.id, 1.5);
+    check(true, 're-saving changes new tabs without changing existing tabs');
+    await browser.tabs.remove([lockedTab.id, resavedTab.id]);
+    await set(b.id, 2);
     await set(a.id, 2.5);
     await set(b.id, 3);
     await mediaAt(a.id, 2.5);
     await mediaAt(b.id, 3);
     check(true, 'real video/audio and iframe rates are tab-local');
     await request(a.id, 'VIDEO_SPEED_TOGGLE');
+    await saveDefault();
     const c = await browser.tabs.create({ url: origin + '/media#c', active: false });
     await mediaAt(c.id, 1);
     check((await get(c.id)).lastNon1xSpeed === 2.5, 'new tab inherits 1x and the alternate');
@@ -104,6 +125,7 @@ DRIVER = r"""
     await mediaAt(restored.tab.id, 2.5);
     await mediaAt(b.id, 3);
     check(true, 'restored tab toggles independently');
+    await saveDefault(restored.tab.id);
     const duplicate = await browser.tabs.duplicate(b.id, { active: true });
     await mediaAt(duplicate.id, 2.5);
     check((await get(duplicate.id)).lastNon1xSpeed === 2.5, 'duplicated tabs start from the latest default');
@@ -136,11 +158,25 @@ DRIVER = r"""
     document.body.append(preview);
     const popup = await waitFor(async () => {
       const doc = preview.contentDocument;
-      if (!doc?.querySelector('#toggleKeyButton') || doc.querySelector('#toggleKeyButton').disabled) {
+      if (!doc?.querySelector('#toggleKeyButton') || doc.querySelector('#toggleKeyButton').disabled || doc.querySelector('#saveDefault').disabled) {
         throw new Error('Popup not initialized');
       }
       return doc;
     });
+    popup.querySelector('[data-speed="1.5"]').click();
+    await waitFor(async () => { if ((await get(duplicate.id)).speed !== 1.5) throw new Error('Preset pending'); });
+    popup.querySelector('#saveDefault').click();
+    await waitFor(async () => { if ((await defaults()).speed !== 1.5 || popup.querySelector('#saveDefault').disabled) throw new Error('Snapshot pending'); });
+    popup.querySelector('[data-speed="3"]').click();
+    await waitFor(async () => { if ((await get(duplicate.id)).speed !== 3 || popup.querySelector('#defaultSpeed').textContent !== '1.5×') throw new Error(`Snapshot readout pending: ${JSON.stringify({defaults: await defaults(), label: popup.querySelector('#defaultSpeed').textContent, notice: popup.querySelector('#notice').textContent})}`); });
+    const popupDefaultTab = await browser.tabs.create({url: origin + '/media#popup-default', active: false});
+    await mediaAt(popupDefaultTab.id, 1.5);
+    check(popup.querySelector('#speedRange').value === '3', 'real popup captures once and displays saved speed independently of tab rate');
+    await browser.tabs.remove(popupDefaultTab.id);
+    popup.querySelector('#saveDefault').click();
+    await waitFor(async () => { if ((await defaults()).speed !== 3 || popup.querySelector('#saveDefault').disabled) throw new Error('Snapshot re-save pending'); });
+    check(popup.querySelector('#saveDefault').textContent === 'Save' && !popup.querySelector('#saveDefault').hasAttribute('aria-checked'), 'real popup re-saves using an action button, not a switch');
+    await set(duplicate.id, 2.5); // restore the existing shortcut-test baseline
     popup.querySelector('#configButton').click();
     check(popup.querySelector('#mainView').hidden && !popup.querySelector('#configView').hidden,
       'configuration replaces the main view inside the popup');
@@ -158,7 +194,7 @@ DRIVER = r"""
       });
     }
     capture('#toggleKeyButton', 'NumpadAdd');
-    check(popup.querySelector('#hotkeyHint').textContent.includes('already assigned'), 'popup rejects duplicate binding');
+    check(popup.querySelector('#hotkeyFeedback').textContent.includes('already assigned') && popup.querySelector('#hotkeyHint').textContent === 'Choose a shortcut. Press a key. Escape clears it.', 'popup rejects duplicate binding separately from the fixed instruction');
     popup.querySelector('#toggleKeyButton').click(); // cancel invalid capture
     capture('#toggleKeyButton', 'KeyK');
     await saved('toggle', 'KeyK');
@@ -277,7 +313,7 @@ def main():
             (stage / "launch-test.js").write_text(
                 'browser.tabs.create({url: browser.runtime.getURL("driver.html"), active: true});', encoding="utf-8"
             )
-            (stage / "driver.html").write_text('<!doctype html><script src="driver.js"></script>', encoding="utf-8")
+            (stage / "driver.html").write_text('<!doctype html><meta charset="utf-8"><script src="driver.js"></script>', encoding="utf-8")
             audio_tests = (ROOT / 'tools/audio_smoke_driver.js').read_text(encoding='utf-8')
             audio_tests = audio_tests.replace('__DIALOGUE_TESTS__', (ROOT / 'tools/dialogue_smoke_driver.js').read_text(encoding='utf-8'))
             (stage / "driver.js").write_text(DRIVER.replace("__ORIGIN__", origin).replace('__AUDIO_TESTS__', audio_tests), encoding="utf-8")

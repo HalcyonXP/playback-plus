@@ -2,7 +2,7 @@
 (() => {
   const listeners = [];
   const storageListeners = [];
-  const preferences = {};
+  const preferences = { playbackSpeed: 2, lastNon1xSpeed: 2, savedSpeedDefault: { enabled: true, speed: 1 } };
   let state = { speed: 2, lastNon1xSpeed: 2, revision: 0 };
   let audio = { enabled: false, delayMs: 0, dialogueEnabled: false, dialogueMix: 100, revision: 0 }; // UI fiction, no audio graph.
   const tabId = 42;
@@ -26,6 +26,14 @@
       for (const listener of storageListeners) listener({ hotkeys: { oldValue, newValue: hotkeys } }, "sync");
       return { hotkeys };
     }
+    if (message.type === "VIDEO_SPEED_DEFAULT_GET") return utils.readSpeedDefaults(preferences);
+    if (message.type === "VIDEO_SPEED_DEFAULT_SET") {
+      const oldValue = preferences.savedSpeedDefault;
+      if ("enabled" in message) throw new Error("Invalid Save Default action");
+      preferences.savedSpeedDefault = { enabled: true, speed: state.speed };
+      for (const listener of storageListeners) listener({ savedSpeedDefault: { oldValue, newValue: preferences.savedSpeedDefault } }, "sync");
+      return utils.readSpeedDefaults(preferences);
+    }
     if (message.type === "VIDEO_SPEED_GET_STATE") return { ...state };
     let next;
     if (message.type === "VIDEO_SPEED_SET") next = utils.updateSpeedState(state, message.speed);
@@ -33,6 +41,9 @@
     else if (message.type === "VIDEO_SPEED_NUDGE") next = utils.updateSpeedState(state, state.speed + message.amount);
     else return undefined;
     state = { ...next, revision: state.revision + 1 };
+    const oldValue = preferences.playbackSpeed;
+    Object.assign(preferences, utils.toStoredSpeedState(state));
+    for (const listener of storageListeners) listener({ playbackSpeed: { oldValue, newValue: state.speed } }, "sync");
     const change = { type: "VIDEO_SPEED_STATE_CHANGED", tabId, state: { ...state } };
     for (const listener of listeners) void listener(change);
     return { ...state, defaultSaved: true };

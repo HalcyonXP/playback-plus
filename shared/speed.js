@@ -1,7 +1,9 @@
 (() => {
   "use strict";
 
-  const DEFAULT_SPEED = 2;
+  const DEFAULT_SPEED = 1;
+  const DEFAULT_ALTERNATE_SPEED = 2;
+  const SAVED_DEFAULT_KEY = "savedSpeedDefault";
   const NORMAL_SPEED = 1;
   const MIN_SPEED = 0.25;
   const MAX_SPEED = 8;
@@ -34,20 +36,20 @@
     return speedsMatch(normalizeSpeed(value), NORMAL_SPEED);
   }
 
-  function normalizeLastNon1xSpeed(value, fallback = DEFAULT_SPEED) {
-    const normalizedFallback = normalizeSpeed(fallback, DEFAULT_SPEED);
+  function normalizeLastNon1xSpeed(value, fallback = DEFAULT_ALTERNATE_SPEED) {
+    const normalizedFallback = normalizeSpeed(fallback, DEFAULT_ALTERNATE_SPEED);
     const safeFallback = isNormalSpeed(normalizedFallback)
-      ? DEFAULT_SPEED
+      ? DEFAULT_ALTERNATE_SPEED
       : normalizedFallback;
     const normalizedValue = normalizeSpeed(value, safeFallback);
 
     return isNormalSpeed(normalizedValue) ? safeFallback : normalizedValue;
   }
 
-  function createSpeedState(speedValue, lastNon1xSpeedValue = DEFAULT_SPEED) {
+  function createSpeedState(speedValue, lastNon1xSpeedValue = DEFAULT_ALTERNATE_SPEED) {
     const speed = normalizeSpeed(speedValue, DEFAULT_SPEED);
     const lastNon1xSpeed = isNormalSpeed(speed)
-      ? normalizeLastNon1xSpeed(lastNon1xSpeedValue, DEFAULT_SPEED)
+      ? normalizeLastNon1xSpeed(lastNon1xSpeedValue, DEFAULT_ALTERNATE_SPEED)
       : speed;
 
     return { speed, lastNon1xSpeed };
@@ -67,7 +69,7 @@
   function updateSpeedState(currentState, speedValue) {
     return createSpeedState(
       speedValue,
-      currentState?.lastNon1xSpeed ?? DEFAULT_SPEED
+      currentState?.lastNon1xSpeed ?? DEFAULT_ALTERNATE_SPEED
     );
   }
 
@@ -95,6 +97,26 @@
     };
   }
 
+  // A default is always a fixed snapshot. Preserve an old On snapshot; migrate
+  // Off/missing settings from the speed those settings would have used for a new
+  // tab. The background persists this once before subsequent explicit choices.
+  // Keep the enabled field/key for storage continuity, but never expose Off now.
+  function readSpeedDefaults(storedValues = {}) {
+    const latest = readSpeedState(storedValues);
+    const saved = storedValues[SAVED_DEFAULT_KEY];
+    return {
+      enabled: true,
+      speed: normalizeSpeed(saved?.enabled === true ? saved.speed ?? latest.speed : latest.speed),
+      latestSpeed: latest.speed,
+      lastNon1xSpeed: latest.lastNon1xSpeed
+    };
+  }
+
+  function seedSpeedState(storedValues = {}) {
+    const defaults = readSpeedDefaults(storedValues);
+    return createSpeedState(defaults.speed, defaults.lastNon1xSpeed);
+  }
+
   function formatSpeed(value) {
     const speed = normalizeSpeed(value);
     return `${Number.isInteger(speed) ? speed.toFixed(0) : speed.toFixed(2).replace(/0$/, "")}×`;
@@ -102,6 +124,10 @@
 
   globalThis.VideoSpeedUtils = Object.freeze({
     DEFAULT_SPEED,
+    DEFAULT_ALTERNATE_SPEED,
+    SAVED_DEFAULT_KEY,
+    readSpeedDefaults,
+    seedSpeedState,
     NORMAL_SPEED,
     MIN_SPEED,
     MAX_SPEED,

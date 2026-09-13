@@ -47,15 +47,16 @@ test("speed utilities normalize values and preserve toggle state", () => {
 });
 
 
-test("tab adjustments isolate existing tabs; new tabs inherit even a 1× toggle", async () => {
+test("tab adjustments isolate existing tabs; new tabs use the saved default, including 1×", async () => {
   const h = createHarness({ defaults: { defaultSpeed: 2.5 } });
   await settle();
-  assert.deepEqual(h.storedValues, { playbackSpeed: 2.5, lastNon1xSpeed: 2.5 });
+  assert.deepEqual(h.storedValues, { playbackSpeed: 2.5, lastNon1xSpeed: 2.5, savedSpeedDefault: { enabled: true, speed: 2.5 } });
   await h.install();
   await h.request({ type: "VIDEO_SPEED_SET", tabId: 1, speed: 3 });
   assert.equal(h.sessions.get(1).speed, 3);
   assert.equal(h.sessions.get(2).speed, 2.5, "even an existing blank tab retains its initial speed");
   await h.request({ type: "VIDEO_SPEED_TOGGLE", tabId: 1 });
+  await h.request({ type: "VIDEO_SPEED_DEFAULT_SET", tabId: 1 }, { url: "moz-extension://test-extension/popup/popup.html" });
   await h.createTab(3);
   assert.deepEqual(h.sessions.get(3), { speed: 1, lastNon1xSpeed: 3, revision: 0 });
   await h.request({ type: "VIDEO_SPEED_TOGGLE", tabId: 2 });
@@ -63,7 +64,7 @@ test("tab adjustments isolate existing tabs; new tabs inherit even a 1× toggle"
   assert.equal(h.sessions.get(2).speed, 2.5, "alternates are independent too");
   assert.equal(h.sessions.get(1).speed, 1);
   assert.equal(h.sessions.get(3).speed, 1);
-  Object.assign(h.storedValues, { playbackSpeed: 4, lastNon1xSpeed: 4 });
+  await h.storage.sync.set({ savedSpeedDefault: { enabled: true, speed: 4 } });
   await h.createTab(4);
   assert.equal(h.sessions.get(4).speed, 4, "remote Sync changes seed only new tabs");
   assert.equal(h.sessions.get(2).speed, 2.5);
@@ -239,7 +240,7 @@ test("protected-page settings work and persistence failures are reported without
   await settle();
   assert.equal(h.sessions.get(1).speed, 3);
   assert.equal(h.storedValues.playbackSpeed, 2);
-  assert.match(elements.notice.textContent, /couldn't be remembered for new tabs/);
+  assert.match(elements.notice.textContent, /fixed default is unchanged/);
   h.failSync = false;
   h.failSessions = true;
   elements.increaseButton.dispatch("click");
@@ -259,13 +260,14 @@ test("manifest and popup expose tab-local media control and session persistence"
   const manifest = JSON.parse(readSource("manifest.json"));
   const popup = readSource("popup/popup.html");
   assert.equal(manifest.name, "Playback Plus");
-  assert.equal(manifest.version, "1.7.0");
+  assert.equal(manifest.version, "1.8.0");
   assert.equal(manifest.action.default_title, "Playback Plus");
   assert.equal(manifest.browser_specific_settings.gecko.id, "video-speed@local");
   assert.match(popup, /<title>Playback Plus<\/title>/);
   assert.match(popup, /href="popup\.css"[\s\S]*href="tactile\.css"/);
   assert.doesNotThrow(() => readSource("popup/tactile.css"));
-  assert.match(popup, /<h1 id="extension-title"><span>Playback<\/span> <span class="brand-second">Plus<\/span><\/h1>/);
+  assert.doesNotMatch(popup, /extension-title|class="brand"|class="logo"/);
+  assert.match(popup, /aria-label="Playback Plus controls"/);
   assert.match(popup, /id="dialogueView"[^>]*hidden/);
   assert.ok(manifest.web_accessible_resources[0].resources.includes("content/dialogue-processor.js"));
   assert.equal(manifest.manifest_version, 3);

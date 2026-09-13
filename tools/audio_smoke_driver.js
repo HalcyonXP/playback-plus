@@ -115,8 +115,10 @@ await (async () => {
     return doc;
   });
   check(ad.querySelector('#availability').hidden && ad.querySelector('#availabilityText').textContent === ''
-    && ad.querySelector('.logo').naturalWidth === 96, 'popup loads its icon and keeps normal header status quiet');
+    && !ad.querySelector('.logo') && ad.querySelector('#saveDefault').getClientRects().length,
+    'popup omits branding and keeps the default widget on playback with quiet status');
   ad.querySelector('#audioButton').click();
+  check(!ad.querySelector('#saveDefault').getClientRects().length, 'audio page excludes the playback-only default row');
   const audioHelp = ad.querySelector('#audioDetails');
   check(!audioHelp.open && !ad.querySelector('#audioSafety').closest('details')
     && ad.querySelector('#audioEnabled').getAttribute('aria-label') === 'Audio sync', 'audio switch is named and recovery warning stays outside collapsed help');
@@ -134,8 +136,8 @@ await (async () => {
   ad.querySelector('#audioBackButton').click();
   ad.querySelector('#configButton').click();
   check(ad.querySelector('#audioToggleKeyButton').textContent === 'Not set', 'new audio shortcuts start unassigned');
-  check(ad.querySelector('.shortcut-scope').textContent.includes('Shared shortcuts')
-    && ad.querySelector('.audio-config-label').textContent === 'Audio sync', 'configuration distinguishes shared bindings from tab-local actions');
+  check(ad.querySelector('#hotkeyHint').textContent === 'Choose a shortcut. Press a key. Escape clears it.'
+    && !ad.querySelector('.shortcut-scope') && ad.querySelector('.audio-config-label').textContent === 'Audio sync', 'configuration has a fixed instruction above compact shared key bindings');
   ad.querySelector('#audioToggleKeyButton').click();
   for (const type of ['keydown', 'keyup']) ad.dispatchEvent(new ap.contentWindow.KeyboardEvent(type, { code: 'KeyJ', bubbles: true, cancelable: true }));
   await waitFor(async () => { if ((await browser.storage.sync.get('hotkeys')).hotkeys.audioToggle !== 'KeyJ') throw new Error('Audio binding pending'); });

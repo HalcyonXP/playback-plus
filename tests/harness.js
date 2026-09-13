@@ -106,6 +106,7 @@ function createHarness({ defaults = { playbackSpeed: 2, lastNon1xSpeed: 2 }, tab
   let backgroundMessages;
   let installed;
   let created;
+  const backgroundStorageListeners = new Set();
   const harness = {
     storedValues, sessions, audioSessions, writes, publications, warnings, storage,
     audioReports: new Map(),
@@ -136,6 +137,11 @@ function createHarness({ defaults = { playbackSpeed: 2, lastNon1xSpeed: 2 }, tab
       audioSessions.delete(id);
     },
     restartBackground() {
+      for (const listener of backgroundStorageListeners) {
+        const index = storageChanges.listeners.indexOf(listener);
+        if (index >= 0) storageChanges.listeners.splice(index, 1);
+      }
+      backgroundStorageListeners.clear();
       backgroundMessages = event();
       installed = event();
       created = event();
@@ -149,7 +155,10 @@ function createHarness({ defaults = { playbackSpeed: 2, lastNon1xSpeed: 2 }, tab
             getURL(path) { return `moz-extension://test-extension/${path}`; },
             sendMessage(message) { return popupListeners.emit(clone(message)); }
           },
-          storage,
+          storage: { ...storage, onChanged: { addListener(listener) {
+            backgroundStorageListeners.add(listener);
+            storageChanges.addListener(listener);
+          } } },
           webNavigation: { ...navigation, async getAllFrames({ tabId }) { return (frames.get(tabId) || []).map((_, frameId) => ({ frameId })); } },
           sessions: {
             async getTabValue(id, key) {
@@ -239,9 +248,10 @@ function createHarness({ defaults = { playbackSpeed: 2, lastNon1xSpeed: 2 }, tab
       return frame;
     },
     createPopup(tabId = harness.activeTab) {
-      const ids = ["availability", "availabilityText", "speedValue", "speedRange", "decreaseButton", "increaseButton", "alternateValue", "notice", "toggleKeyButton", "increaseKeyButton", "decreaseKeyButton", "hotkeyHint", "mainView", "configView", "configButton", "backButton", "audioView", "audioToggleKeyButton", "audioIncreaseKeyButton", "audioDecreaseKeyButton", "audioButton", "audioSummary", "audioBackButton", "audioEnabled", "audioValue", "audioExact", "audioDecrease", "audioIncrease", "audioReset", "audioStatus", "audioError", "dialogueButton", "dialogueSummary", "dialogueView", "dialogueBackButton", "dialogueEnabled", "dialogueMix", "dialogueValue", "dialogueStatus", "dialogueError"];
+      const ids = ["saveDefault", "defaultSpeed", "availability", "availabilityText", "speedValue", "speedRange", "decreaseButton", "increaseButton", "alternateValue", "notice", "toggleKeyButton", "increaseKeyButton", "decreaseKeyButton", "hotkeyHint", "hotkeyFeedback", "mainView", "configView", "configButton", "backButton", "audioView", "audioToggleKeyButton", "audioIncreaseKeyButton", "audioDecreaseKeyButton", "audioButton", "audioSummary", "audioBackButton", "audioEnabled", "audioValue", "audioExact", "audioDecrease", "audioIncrease", "audioReset", "audioStatus", "audioError", "dialogueButton", "dialogueSummary", "dialogueView", "dialogueBackButton", "dialogueEnabled", "dialogueMix", "dialogueValue", "dialogueStatus", "dialogueError"];
       const elements = Object.fromEntries(ids.map((id) => [id, new FakeElement("div")]));
-      const presets = [1, 1.5, 2, 2.5, 3, 4].map((speed) => {
+      elements.hotkeyHint.textContent = readSource("popup/popup.html").match(/<p id="hotkeyHint"[^>]*>([^<]+)<\/p>/)[1];
+      const presets = [0.5, 1, 1.5, 2, 2.5, 3].map((speed) => {
         const button = new FakeElement("button");
         button.dataset.speed = String(speed);
         return button;
@@ -255,11 +265,13 @@ function createHarness({ defaults = { playbackSpeed: 2, lastNon1xSpeed: 2 }, tab
       document.querySelectorAll = () => presets;
       const popupContext = run("popup/popup.js", {
         console,
+        matchMedia() { return { matches: true, addEventListener() {} }; },
+        requestAnimationFrame() { return 1; }, cancelAnimationFrame() {},
         setTimeout() { return 1; }, clearTimeout() {}, setInterval() { return 1; }, clearInterval() {}, addEventListener() {},
         document,
         browser: {
           storage,
-          runtime: { onMessage: popupListeners, sendMessage: harness.request },
+          runtime: { onMessage: popupListeners, sendMessage(message) { return harness.request(message, { url: "moz-extension://test-extension/popup/popup.html" }); } },
           tabs: {
             async query() { return [{ id: tabId }]; },
             async sendMessage(id, message) {

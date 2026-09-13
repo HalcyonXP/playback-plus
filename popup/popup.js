@@ -3,6 +3,7 @@
 
   const {
     DEFAULT_SPEED,
+    SAVED_DEFAULT_KEY,
     MIN_SPEED,
     MAX_SPEED,
     SPEED_STEP,
@@ -13,6 +14,8 @@
   } = globalThis.VideoSpeedUtils;
 
   const elements = {
+    saveDefault: document.querySelector("#saveDefault"),
+    defaultSpeed: document.querySelector("#defaultSpeed"),
     availability: document.querySelector("#availability"),
     availabilityText: document.querySelector("#availabilityText"),
     speedValue: document.querySelector("#speedValue"),
@@ -25,7 +28,7 @@
     toggleKeyButton: document.querySelector("#toggleKeyButton"),
     increaseKeyButton: document.querySelector("#increaseKeyButton"),
     decreaseKeyButton: document.querySelector("#decreaseKeyButton"),
-    hotkeyHint: document.querySelector("#hotkeyHint"),
+    hotkeyFeedback: document.querySelector("#hotkeyFeedback"),
     mainView: document.querySelector("#mainView"),
     configView: document.querySelector("#configView"),
     configButton: document.querySelector("#configButton"),
@@ -54,6 +57,19 @@
   let savingKey = false;
   let keyReady = false;
   let suppressActivationCode = null;
+  let keyFeedbackKind = null;
+
+  function showKeyFeedback(message, kind) {
+    keyFeedbackKind = kind;
+    elements.hotkeyFeedback.textContent = message;
+  }
+
+  function clearKeyFeedback(kind) {
+    if (kind && keyFeedbackKind !== kind) return;
+    keyFeedbackKind = null;
+    elements.hotkeyFeedback.textContent = "";
+  }
+  clearKeyFeedback();
 
   function renderHotkeys() {
     for (const action of ACTIONS) {
@@ -61,15 +77,18 @@
       button.disabled = !keyReady || savingKey;
       button.textContent = capturingAction === action ? "Press key…" : formatHotkey(hotkeys[action]);
       button.setAttribute("aria-pressed", String(capturingAction === action));
-      button.setAttribute("aria-label", `${actionLabels[action]} shortcut: ${formatHotkey(hotkeys[action])}. Click to change.`);
+      const label = capturingAction === action
+        ? `${actionLabels[action]} shortcut: Press a key. Escape clears this binding. Click again or go Back to cancel.`
+        : `${actionLabels[action]} shortcut: ${formatHotkey(hotkeys[action])}. Click to change.`;
+      button.setAttribute("aria-label", label);
+      button.title = label; // Full names remain available when the fixed-width label is ellipsized.
     }
-    elements.hotkeyHint.textContent = capturingAction
-      ? `${actionLabels[capturingAction]}: press one key. Escape exits and clears. Click the same shortcut or Back to cancel without changes.`
-      : "Choose a shortcut. Press a key. Escape clears it.";
+    // The instruction below Configuration is static HTML, never capture/status text.
   }
 
   function showConfiguration(show) {
     capturingAction = null;
+    clearKeyFeedback("validation");
     elements.audioView.hidden = true;
     elements.dialogueView.hidden = true;
     elements.mainView.hidden = show;
@@ -84,6 +103,7 @@
     keyButtons[action].addEventListener("click", () => {
       if (!keyReady || savingKey) return;
       capturingAction = capturingAction === action ? null : action;
+      clearKeyFeedback("validation");
       renderHotkeys();
     });
   }
@@ -102,17 +122,18 @@
       const reason = error.message.includes("already assigned")
         ? "That key is already assigned to another action."
         : "That key combination can't be used.";
-      elements.hotkeyHint.textContent = `${reason} Choose another key, or Escape to clear.`;
+      showKeyFeedback(`${actionLabels[capturingAction]}: ${reason} Choose another key, or Escape to clear.`, "validation");
       return;
     }
     const action = capturingAction;
     capturingAction = null;
     savingKey = true;
+    clearKeyFeedback();
     renderHotkeys();
     void browser.runtime.sendMessage({ type: "VIDEO_SPEED_SET_HOTKEY", action, code }).then(() => {
-      clearNotice("shortcuts");
+      clearKeyFeedback("save");
     }).catch(() => {
-      showNotice("Couldn't change the shortcut. Please try again.", "shortcuts");
+      showKeyFeedback("Couldn't change the shortcut. Please try again.", "save");
     }).finally(() => {
       savingKey = false;
       renderHotkeys();
@@ -131,14 +152,17 @@
   const shortcutObserver = observeHotkeys((next) => {
     hotkeys = next;
     keyReady = true;
+    clearKeyFeedback("load");
     renderHotkeys();
   });
   void shortcutObserver.refresh().catch(() => {
     renderHotkeys();
-    showNotice("Couldn't load your shortcuts. Close and reopen Playback Plus to try again.", "shortcuts");
+    showKeyFeedback("Couldn't load your shortcuts. Close and reopen Playback Plus to try again.", "load");
   });
 
   let latestRequest = 0;
+  let pendingSpeedRequests = 0;
+  let deferredSpeedState = null;
   let noticeSource = null;
   elements.notice.textContent = "";
 
@@ -163,13 +187,112 @@
     elements.availabilityText.textContent = state.tabAvailable === false ? "Unavailable on this page" : "";
   }
 
-  function render() {
+  let defaults = null;
+  let defaultsReady = false;
+  let savingDefault = false;
+  let defaultsRequest = 0;
+
+  function renderDefaults() {
+    elements.saveDefault.disabled = !state.ready || !defaultsReady || savingDefault;
+    elements.saveDefault.setAttribute("aria-busy", String(savingDefault));
+    elements.saveDefault.textContent = "Save";
+    elements.defaultSpeed.textContent = defaultsReady ? formatSpeed(defaults.speed) : "—";
+  }
+
+  async function refreshDefaults() {
+    const generation = ++defaultsRequest;
+    try {
+      const next = await request("VIDEO_SPEED_DEFAULT_GET");
+      if (generation !== defaultsRequest) return;
+      defaults = next;
+      defaultsReady = true;
+      clearNotice("defaults-load");
+      renderDefaults();
+    } catch {
+      if (generation !== defaultsRequest) return;
+      defaultsReady = false;
+      renderDefaults();
+      showNotice("Couldn't load the new-tab default. Close and reopen Playback Plus to try again.", "defaults-load");
+    }
+  }
+
+  elements.saveDefault.addEventListener("click", async () => {
+    if (!state.ready || !defaultsReady || savingDefault) return;
+    savingDefault = true;
+    renderDefaults();
+    try {
+      await request("VIDEO_SPEED_DEFAULT_SET");
+      clearNotice("defaults-save");
+    } catch {
+      showNotice("Couldn't save the new-tab default. Check the displayed setting and try again.", "defaults-save");
+    } finally {
+      // Re-read rather than adopting a potentially stale reply from another popup.
+      await refreshDefaults();
+      savingDefault = false;
+      renderDefaults();
+    }
+  });
+
+  browser.storage.onChanged.addListener((changes, area) => {
+    if (area === "sync" && SAVED_DEFAULT_KEY in changes) {
+      // Never await a queued read from a storage notification inside the writer.
+      void refreshDefaults();
+    }
+  });
+
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  let faderTarget = null;
+  let visualSpeed = DEFAULT_SPEED;
+  let faderAnimation = null;
+
+  function stopFaderAnimation() {
+    if (faderAnimation !== null) cancelAnimationFrame(faderAnimation);
+    faderAnimation = null;
+    visualSpeed = state.speed;
+    elements.speedRange.style.setProperty("--speed-thumb-offset", "0px");
+  }
+
+  function renderFader(animate) {
+    // Keep the native range's value/step truthful throughout the purely visual glide.
+    elements.speedRange.value = String(state.speed);
+    if (faderTarget === state.speed) return; // acknowledgements must not interrupt a glide
+    const initialized = faderTarget !== null;
+    faderTarget = state.speed;
+    if (!animate || !initialized || reducedMotion.matches) {
+      stopFaderAnimation();
+      return;
+    }
+    if (faderAnimation !== null) cancelAnimationFrame(faderAnimation);
+    const startSpeed = visualSpeed;
+    const target = state.speed;
+    const start = performance.now();
+    // Firefox's cap is 16px + two 1px borders. Native range semantics stay intact.
+    const travel = Math.max(0, elements.speedRange.clientWidth - 18);
+    const offset = () => elements.speedRange.style.setProperty("--speed-thumb-offset", `${(visualSpeed - target) / (MAX_SPEED - MIN_SPEED) * travel}px`);
+    offset();
+    function frame(now) {
+      const progress = Math.min(1, (now - start) / 220);
+      visualSpeed = startSpeed + (target - startSpeed) * (1 - (1 - progress) ** 3);
+      offset();
+      if (progress < 1) faderAnimation = requestAnimationFrame(frame);
+      else stopFaderAnimation();
+    }
+    faderAnimation = requestAnimationFrame(frame);
+  }
+
+  // Direct manipulation is never animated, even if it interrupts a preset glide.
+  elements.speedRange.addEventListener("pointerdown", stopFaderAnimation);
+  elements.speedRange.addEventListener("keydown", stopFaderAnimation);
+  reducedMotion.addEventListener("change", stopFaderAnimation);
+  addEventListener("pagehide", stopFaderAnimation);
+
+  function render(animate = false) {
     const speedText = formatSpeed(state.speed);
     // Fixed precision belongs to the deck readout only; notices/keys keep compact labels.
     const readoutText = `${state.speed.toFixed(2)}×`;
     elements.speedValue.value = readoutText;
     elements.speedValue.textContent = readoutText;
-    elements.speedRange.value = String(state.speed);
+    renderFader(animate);
     elements.speedRange.setAttribute("aria-valuetext", speedText);
     elements.alternateValue.textContent = formatSpeed(state.lastNon1xSpeed);
 
@@ -184,6 +307,7 @@
     }
 
     renderAvailability();
+    renderDefaults();
   }
 
   function showNotice(message, source = "speed") {
@@ -232,14 +356,15 @@
     render();
   }
 
-  async function chooseSpeed(value) {
+  async function chooseSpeed(value, animate = false) {
     if (!state.ready) {
       return;
     }
     const requestNumber = ++latestRequest;
+    pendingSpeedRequests++;
     const nextState = updateSpeedState(state, value);
     adoptSpeedState(nextState);
-    render();
+    render(animate);
 
     try {
       const saved = await request("VIDEO_SPEED_SET", { speed: nextState.speed });
@@ -247,7 +372,7 @@
         adoptSpeedState(saved);
         render();
         if (saved.defaultSaved === false) {
-          showNotice("The speed changed, but it couldn't be remembered for new tabs.");
+          showNotice("The speed changed, but the last-used speed couldn't be saved. Your fixed default is unchanged.");
         } else {
           clearNotice("speed");
         }
@@ -263,6 +388,13 @@
         render();
       }
       showNotice("Couldn't change the speed. Please try again.");
+    } finally {
+      pendingSpeedRequests--;
+      if (!pendingSpeedRequests && deferredSpeedState) {
+        adoptSpeedState(deferredSpeedState);
+        deferredSpeedState = null;
+        render();
+      }
     }
   }
 
@@ -274,6 +406,7 @@
         throw new Error("No active tab");
       }
       await reloadTabState();
+      await refreshDefaults();
       state.ready = true;
       render();
       await detectTabAvailability();
@@ -289,23 +422,27 @@
   });
 
   elements.decreaseButton.addEventListener("click", () => {
-    void chooseSpeed(state.speed - SPEED_STEP);
+    void chooseSpeed(state.speed - SPEED_STEP, true);
   });
 
   elements.increaseButton.addEventListener("click", () => {
-    void chooseSpeed(state.speed + SPEED_STEP);
+    void chooseSpeed(state.speed + SPEED_STEP, true);
   });
 
   for (const preset of elements.presets) {
     preset.addEventListener("click", () => {
-      void chooseSpeed(preset.dataset.speed);
+      void chooseSpeed(preset.dataset.speed, true);
     });
   }
 
   browser.runtime.onMessage.addListener((message) => {
     if (message?.type === "VIDEO_SPEED_STATE_CHANGED" && message.tabId === state.tabId) {
-      adoptSpeedState(message.state);
-      render();
+      if (pendingSpeedRequests) {
+        if (!deferredSpeedState || message.state.revision >= deferredSpeedState.revision) deferredSpeedState = message.state;
+      } else {
+        adoptSpeedState(message.state);
+        render();
+      }
     }
     return undefined;
   });

@@ -90,6 +90,19 @@ def main():
             find = lambda id: driver.find_element(By.ID, id)
             wait.until(lambda _: find('speedRange').is_enabled() and find('audioExact').is_enabled())
             assert not find('availabilityText').text
+            assert not driver.find_elements(By.CSS_SELECTOR, '.brand, .logo, #defaultKind, #defaultHint')
+            assert find('defaultLabel').text == 'Default for new tabs'
+            assert find('saveDefault').get_attribute('role') != 'switch'
+            assert find('saveDefault').get_attribute('aria-checked') is None
+            assert find('saveDefault').accessible_name == 'Save current playback speed as default for new tabs'
+            readout = driver.execute_script("const r=document.getElementById('defaultReadout'),s=getComputedStyle(r),b=document.getElementById('saveDefault').getBoundingClientRect(),p=document.querySelector('.presets').getBoundingClientRect();return {cursor:s.cursor,background:s.backgroundImage,shadow:s.boxShadow,tabIndex:r.tabIndex,below:b.top>=p.bottom,first:document.querySelector('.adjuster').getBoundingClientRect().top}")
+            assert readout == {'cursor':'default','background':'none','shadow':'none','tabIndex':-1,'below':True,'first':19}, readout
+            find('defaultLabel').click()
+            assert find('defaultSpeed').text == '1×', 'Readout clicks must not save'
+            assert driver.execute_script("return getComputedStyle(document.querySelector('.presets')).gap") == '0px'
+            assert find('dialogueMix').get_attribute('aria-label') == 'Filter mix'
+            alignment = driver.execute_script("const l=document.getElementById('defaultLabel').getBoundingClientRect(), s=document.getElementById('saveDefault').getBoundingClientRect(); return (l.top+l.height/2)-(s.top+s.height/2)")
+            assert abs(alignment) < .1, alignment
             if args.forced_colors:
                 assert driver.execute_script("return matchMedia('(forced-colors: active)').matches")
                 assert driver.execute_script("return getComputedStyle(document.querySelector('.presets button[aria-pressed=true]')).outlineStyle") == 'solid'
@@ -107,6 +120,14 @@ def main():
                       naturalHeight: document.body.getBoundingClientRect().height,
                       scrollHeight: document.documentElement.scrollHeight, clientHeight: document.documentElement.clientHeight};
                 ''')
+                playback = not find('mainView').get_attribute('hidden')
+                assert find('saveDefault').is_displayed() == playback, name
+                if playback:
+                    assert 'PLAYBACK RATE' not in find('mainView').text and 'THIS TAB' not in find('mainView').text
+                text_depth = driver.execute_script("""
+                  return [...document.querySelectorAll('.app *')].filter(e=>e.getClientRects().length && [...e.childNodes].some(n=>n.nodeType===3 && n.textContent.trim())).every(e=>(getComputedStyle(e).textShadow !== 'none') === !matchMedia('(forced-colors: active)').matches);
+                """)
+                assert text_depth, ('All visible lettering has depth only outside forced colours', name)
                 assert metrics['width'] <= 360 and not metrics['overflow'], (name, metrics)
                 assert metrics['height'] <= 600, (name, metrics)
                 if name in ('main', 'audio-off', 'dialogue-off', 'configuration'):
@@ -135,7 +156,7 @@ def main():
             key = find('increaseButton')
             rest_shadow = driver.execute_script('return getComputedStyle(arguments[0]).boxShadow', key)
             ActionChains(driver).move_to_element(key).click_and_hold().perform()
-            assert driver.execute_script('return getComputedStyle(arguments[0]).transform', key) == 'matrix(1, 0, 0, 1, 0, 3)'
+            assert driver.execute_script('return getComputedStyle(arguments[0]).transform', key) == 'none', 'Flat actions must not jump on press'
             if not args.forced_colors:
                 assert driver.execute_script('return getComputedStyle(arguments[0]).boxShadow', key) != rest_shadow
             ActionChains(driver).release().perform()
@@ -143,8 +164,78 @@ def main():
             find('decreaseButton').click()
             wait.until(lambda _: find('speedValue').text == '2.00×')
             assert not find('notice').text, 'Routine changes must be silent'
-            ActionChains(driver).move_to_element(driver.find_element(By.CSS_SELECTOR, '.header')).perform()
+            ActionChains(driver).move_to_element(find('speedValue')).perform()
             layout('main')
+            # Real native range value stays at the destination; only its cap moves.
+            motion = driver.execute_async_script("""
+              const done = arguments[arguments.length - 1], range = document.getElementById('speedRange');
+              const samples = [];
+              const sample = () => samples.push({
+                value: Number(range.value), rate: window.__videoSpeedMock.currentSpeed,
+                offset: parseFloat(range.style.getPropertyValue('--speed-thumb-offset')) || 0,
+                transform: getComputedStyle(range, '::-moz-range-thumb').transform
+              });
+              document.querySelector('[data-speed="0.5"]').click();
+              sample();
+              const start = performance.now();
+              function frame(now) {
+                sample();
+                if (now - start < 300) requestAnimationFrame(frame);
+                else done(samples);
+              }
+              requestAnimationFrame(frame);
+            """)
+            assert all(s['value'] == .5 and s['rate'] == .5 for s in motion), motion
+            assert motion[-1]['offset'] == 0, motion
+            if args.reduced_motion:
+                assert all(s['offset'] == 0 for s in motion), motion
+            else:
+                assert motion[0]['offset'] > 0 and any(0 < s['offset'] < motion[0]['offset'] for s in motion), motion
+                assert motion[0]['transform'] not in ('none', 'matrix(1, 0, 0, 1, 0, 0)'), motion
+            assert find('defaultSpeed').text == '1×', 'Presets must not overwrite the saved snapshot'
+            find('saveDefault').send_keys(Keys.SPACE)
+            wait.until(lambda _: find('defaultSpeed').text == '0.5×' and find('saveDefault').is_enabled())
+            layout('default-saved')
+            driver.execute_script('return fixtureApi.changeSpeed(2)')
+            assert find('defaultSpeed').text == '0.5×'
+            layout('default-snapshot')
+            find('saveDefault').send_keys(Keys.ENTER)
+            wait.until(lambda _: find('defaultSpeed').text == '2×' and find('saveDefault').is_enabled())
+            layout('default-resaved')
+            driver.execute_script('return fixtureApi.changeSpeed(0.5)')
+            find('saveDefault').click()
+            wait.until(lambda _: find('defaultSpeed').text == '0.5×' and find('saveDefault').is_enabled())
+            driver.execute_script('return fixtureApi.changeSpeed(2)')
+            # Both +/- buttons use the same visual-only glide, with one final rate request.
+            for button, expected in [('increaseButton', 2.25), ('decreaseButton', 2)]:
+                traced = driver.execute_async_script("""
+                  const button=arguments[0], done=arguments[arguments.length-1], range=document.getElementById('speedRange');
+                  const original=browser.runtime.sendMessage, requests=[], samples=[];
+                  browser.runtime.sendMessage = m => { if(m.type==='VIDEO_SPEED_SET')requests.push(m.speed); return original(m); };
+                  const sample=()=>samples.push({value:Number(range.value),rate:window.__videoSpeedMock.currentSpeed,offset:parseFloat(range.style.getPropertyValue('--speed-thumb-offset'))||0});
+                  document.getElementById(button).click(); sample(); const start=performance.now();
+                  function frame(now) { sample(); if(now-start<300)requestAnimationFrame(frame); else {browser.runtime.sendMessage=original;done({requests,samples});} }
+                  requestAnimationFrame(frame);
+                """, button)
+                assert traced['requests'] == [expected], traced
+                samples = traced['samples']
+                assert all(s['value'] == expected and s['rate'] == expected for s in samples), traced
+                assert samples[-1]['offset'] == 0, traced
+                if args.reduced_motion:
+                    assert all(s['offset'] == 0 for s in samples), traced
+                else:
+                    assert samples[0]['offset'] != 0 and any(0 < abs(s['offset']) < abs(samples[0]['offset']) for s in samples), traced
+                assert find('defaultSpeed').text == '0.5×', 'Nudges never update the snapshot'
+            # Repeated presets reverse from the visible position; direct input cancels.
+            interrupted = driver.execute_script("""
+              const r = document.getElementById('speedRange');
+              document.querySelector('[data-speed="3"]').click();
+              document.querySelector('[data-speed="1"]').click();
+              r.dispatchEvent(new KeyboardEvent('keydown', {code:'ArrowRight'}));
+              return {value:r.value, offset:r.style.getPropertyValue('--speed-thumb-offset')};
+            """)
+            assert interrupted == {'value':'1', 'offset':'0px'}, interrupted
+            driver.execute_script('return fixtureApi.changeSpeed(2)')
             speed_range = find('speedRange')
             find('decreaseButton').send_keys(Keys.TAB)
             assert driver.execute_script('return document.activeElement.id') == 'speedRange'
@@ -218,18 +309,56 @@ def main():
                 find(view + 'BackButton').click()
                 assert driver.execute_script('return document.activeElement.id') == view + 'Button'
             find('configButton').click()
-            assert 'Shared shortcuts' in driver.find_element(By.CSS_SELECTOR, '.shortcut-scope').text
+            instruction = 'Choose a shortcut. Press a key. Escape clears it.'
+            assert find('hotkeyHint').text == instruction
+            assert not driver.find_elements(By.CSS_SELECTOR, '.shortcut-scope')
+            assert driver.execute_script("return document.getElementById('hotkeyHint').previousElementSibling.classList.contains('config-heading')")
             assert driver.find_element(By.CSS_SELECTOR, '.audio-config-label').text == 'AUDIO SYNC'
+            assert driver.execute_script("const s=getComputedStyle(document.getElementById('shortcutDetails')); return s.borderTopWidth==='0px' && s.marginTop==='0px'"), 'Configuration help has no redundant divider or gap'
+            assert driver.execute_script("return ['audioDetails','dialogueDetails'].every(id=>getComputedStyle(document.getElementById(id)).borderTopWidth==='1px')"), 'Other pages retain their help dividers'
             layout('configuration')
+            def config_positions():
+                return driver.execute_script("""
+                  return {height:document.body.getBoundingClientRect().height,
+                    rects:[document.getElementById('hotkeyHint'), ...document.querySelectorAll('.hotkey-row,.hotkey-button')].map(e=>{const r=e.getBoundingClientRect();return [r.x,r.y,r.width,r.height]})};
+                """)
+            stable = config_positions()
+            key_ids = ['toggleKeyButton','increaseKeyButton','decreaseKeyButton','audioToggleKeyButton','audioIncreaseKeyButton','audioDecreaseKeyButton']
+            original_labels = {id: find(id).text for id in key_ids}
+            for id in key_ids:
+                find(id).click()
+                assert find(id).text == 'Press key…' and find(id).get_attribute('aria-pressed') == 'true'
+                assert find('hotkeyHint').text == instruction and not find('hotkeyFeedback').text
+                assert config_positions() == stable, ('Capture must not move the instruction, rows or controls', id)
+                assert all(find(other).text == original_labels[other] for other in key_ids if other != id)
+                assert driver.execute_script('return arguments[0].scrollWidth <= arguments[0].clientWidth',find(id)), 'Press key must fit without truncation'
+                find(id).click()
+                assert config_positions() == stable and find(id).text == original_labels[id]
             find('audioIncreaseKeyButton').click()
-            assert find('audioIncreaseKeyButton').get_attribute('aria-pressed') == 'true'
             layout('configuration-capture')
+            # A duplicate must affect the separate feedback region, not the instruction or key rows.
+            driver.execute_script("document.dispatchEvent(new KeyboardEvent('keydown',{code:'NumpadAdd',bubbles:true}));document.dispatchEvent(new KeyboardEvent('keyup',{code:'NumpadAdd',bubbles:true}))")
+            assert 'already assigned' in find('hotkeyFeedback').text and find('hotkeyHint').text == instruction
+            assert config_positions()['rects'] == stable['rects']
+            assert find('hotkeyFeedback').get_attribute('aria-live') == 'polite'
+            layout('configuration-duplicate')
             find('audioIncreaseKeyButton').click()
+            assert not find('hotkeyFeedback').text and config_positions() == stable
+            # Wide labels retain their full accessible/hover names without moving rows.
+            driver.execute_script("return fixtureApi.message({type:'VIDEO_SPEED_SET_HOTKEY',action:'audioToggle',code:'IntlBackslash'})")
+            wait.until(lambda _: 'Intl Backslash' in find('audioToggleKeyButton').get_attribute('title'))
+            assert 'Intl Backslash' in find('audioToggleKeyButton').get_attribute('aria-label')
+            assert config_positions() == stable
+            find('audioToggleKeyButton').click()
+            assert config_positions() == stable and find('hotkeyHint').text == instruction
+            driver.execute_script("document.dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',bubbles:true}));document.dispatchEvent(new KeyboardEvent('keyup',{code:'Escape',bubbles:true}))")
+            wait.until(lambda _: find('audioToggleKeyButton').is_enabled() and find('audioToggleKeyButton').text == 'Not set')
+            assert config_positions() == stable and find('hotkeyHint').text == instruction
             summary = find('shortcutDetails').find_element(By.TAG_NAME, 'summary')
             summary.send_keys(Keys.ENTER)
             wait.until(lambda _: find('shortcutDetails').get_attribute('open'))
             layout('configuration-help')
-            print(json.dumps({'passed': True, 'checks': 'tactile press depth, centred +/- strokes, speed/mix keyboard endpoints, exact-delay bounds/errors, partial/failure status, shortcut capture, layout, switches/help and Back focus', 'views': results}, indent=2))
+            print(json.dumps({'passed': True, 'checks': 'Graphite ruled action materials, centred default row, non-interactive playback-only readout, snapshot Save/re-save, visual-only preset and +/- glide and interruption, stable compact hotkey targets/fixed instruction/separate feedback, stationary flat press state, centred +/- strokes, speed/mix keyboard endpoints, exact-delay bounds/errors, partial/failure status, shortcut capture, layout, switches/help and Back focus', 'views': results}, indent=2))
     finally:
         server.shutdown()
         server.server_close()

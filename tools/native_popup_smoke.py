@@ -25,9 +25,18 @@ DRIVER = r"""
 (async () => {
   const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
   const el = id => document.getElementById(id);
+  async function waitFor(predicate, label) {
+    for (let i = 0; i < 100; i++) {
+      if (predicate()) return;
+      await pause(50);
+    }
+    throw new Error(label + ': ' + JSON.stringify({speed:el('speedValue').textContent, saved:el('defaultSpeed').textContent, disabled:el('saveDefault').disabled, notice:el('notice').textContent}));
+  }
   const metrics = name => {
     const root = document.documentElement, body = document.body;
     return {name, innerHeight, innerWidth, dpr: devicePixelRatio, screenHeight: screen.availHeight,
+      speed: el('speedValue').textContent, savedDefault: el('defaultSpeed').textContent,
+      savingDefault: el('saveDefault').disabled, notice: el('notice').textContent,
       bodyHeight: body.getBoundingClientRect().height, appHeight: document.querySelector('.app').getBoundingClientRect().height,
       rootClient: root.clientHeight, rootScroll: root.scrollHeight, bodyClient: body.clientHeight, bodyScroll: body.scrollHeight,
       rootWidth: root.clientWidth, bodyWidth: body.clientWidth, scrollWidth: root.scrollWidth,
@@ -40,7 +49,7 @@ DRIVER = r"""
     return result;
   }
   try {
-    for (let i=0; i<100 && (el('audioExact').disabled || el('speedRange').disabled); i++) await pause(100);
+    for (let i=0; i<100 && (el('audioExact').disabled || el('speedRange').disabled || el('saveDefault').disabled); i++) await pause(100);
     if (el('audioExact').disabled) throw new Error('Popup/media not ready');
     await pause(400);
     document.body.setAttribute('data-native-test-ready', 'true');
@@ -48,7 +57,20 @@ DRIVER = r"""
     el('increaseButton').click();
     const changed = await report('main-speed-change');
     if (el('notice').textContent || !el('availability').hidden || changed.innerHeight !== main.innerHeight) throw new Error('Speed change must not create a banner or resize the popup');
+    const oldDefault = el('defaultSpeed').textContent;
+    el('defaultReadout').click();
+    if (el('defaultSpeed').textContent !== oldDefault || el('saveDefault').hasAttribute('aria-checked')) throw new Error('Default readout must be inert and Save must not be a switch');
+    el('saveDefault').click();
+    await waitFor(() => !el('saveDefault').disabled && el('defaultSpeed').textContent === '1.25×', 'Default Save did not complete');
+    const saved = await report('main-default-saved');
+    if (el('defaultSpeed').textContent !== '1.25×' || saved.innerHeight !== main.innerHeight) throw new Error('Save must capture without resizing');
     el('decreaseButton').click();
+    await report('main-default-kept');
+    if (el('defaultSpeed').textContent !== '1.25×') throw new Error('Speed changes must not change saved default');
+    el('saveDefault').click();
+    await waitFor(() => !el('saveDefault').disabled && el('defaultSpeed').textContent === '1×', 'Default re-save did not complete');
+    await report('main-default-resaved');
+    if (el('defaultSpeed').textContent !== '1×' || el('notice').textContent) throw new Error('Save must replace the snapshot quietly');
     for (const view of ['audio', 'dialogue']) {
       el(view + 'Button').click();
       await report(view);
@@ -62,7 +84,20 @@ DRIVER = r"""
       await report('main-after-' + view);
     }
     el('configButton').click();
-    await report('configuration');
+    const configuration = await report('configuration');
+    const instruction = 'Choose a shortcut. Press a key. Escape clears it.';
+    const positions = () => JSON.stringify([el('hotkeyHint'), ...document.querySelectorAll('.hotkey-row,.hotkey-button')].map(e=>e.getBoundingClientRect().toJSON()));
+    const originalPositions = positions();
+    el('audioIncreaseKeyButton').click();
+    const capture = await report('configuration-capture');
+    if (capture.innerHeight !== configuration.innerHeight || capture.bodyHeight !== configuration.bodyHeight || positions() !== originalPositions || el('hotkeyHint').textContent !== instruction || el('audioIncreaseKeyButton').textContent !== 'Press key…') throw new Error('Capture must not rewrite the instruction or resize/move the controls');
+    document.dispatchEvent(new KeyboardEvent('keydown', {code:'NumpadAdd', bubbles:true}));
+    document.dispatchEvent(new KeyboardEvent('keyup', {code:'NumpadAdd', bubbles:true}));
+    await report('configuration-duplicate');
+    if (!el('hotkeyFeedback').textContent.includes('already assigned') || el('hotkeyHint').textContent !== instruction || positions() !== originalPositions) throw new Error('Duplicate feedback must stay separate from the fixed instruction and controls');
+    el('audioIncreaseKeyButton').click();
+    const cancelled = await report('configuration-cancelled');
+    if (cancelled.innerHeight !== configuration.innerHeight || el('hotkeyFeedback').textContent || positions() !== originalPositions) throw new Error('Cancel must restore quiet configuration');
     el('shortcutDetails').querySelector('summary').click();
     await report('configuration-expanded');
     document.scrollingElement.scrollTop = document.scrollingElement.scrollHeight;
@@ -73,7 +108,7 @@ DRIVER = r"""
     await report('main-final');
     await fetch('__ORIGIN__/report', {method: 'POST', body: JSON.stringify({done:true})});
   } catch(error) {
-    await fetch('__ORIGIN__/report', {method: 'POST', body: JSON.stringify({done:true, error:String(error.stack || error)})});
+    await fetch('__ORIGIN__/report', {method: 'POST', body: JSON.stringify({done:true, error:String(error) + '\n' + (error.stack || '')})});
   }
 })();
 """
@@ -170,7 +205,7 @@ def main():
         server.shutdown(); server.server_close()
     (output / (args.label + '.json')).write_text(json.dumps(results, indent=2), encoding='utf-8')
     if not args.observe_only:
-        assert len(results) == 17, 'All native sizing cases must complete'
+        assert len(results) == 23, 'All native sizing cases must complete'
         cap = args.height_cap or 600
         for r in results:
             assert r['innerWidth'] == 360 and r['scrollWidth'] == 360, r

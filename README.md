@@ -2,18 +2,18 @@
 
 **Your playback, your pace.** Control playback speed, sound timing and dialogue in Firefox—independently for each tab.
 
-**Version 1.7.0 · Firefox 142+** · **[Download unsigned XPI](https://github.com/HalcyonXP/playback-plus/releases/download/v1.7.0/playback-plus-1.7.0.xpi)**
+**Version 1.8.0 · Firefox 142+** · **[Download unsigned XPI](https://github.com/HalcyonXP/playback-plus/releases/download/v1.8.0/playback-plus-1.8.0.xpi)**
 
-[![Playback Plus Studio Deck interface: playback speed, audio sync, dialogue focus and keyboard shortcut configuration.](docs/images/playback-plus-overview.png)](docs/images/playback-plus-overview.png)
+[![Playback Plus 1.8.0 Graphite interface: playback speed with a saved new-tab default, audio sync, dialogue focus and keyboard shortcut configuration.](docs/images/playback-plus-overview.png)](docs/images/playback-plus-overview.png)
 
-*Four views, one compact control panel. Click the image for a closer look.*
+*Four views, one compact Graphite panel. Shown with example settings; click the image for a closer look.*
 
 ## Make playback work for you
 
 - **Playback speed:** watch or listen at **0.25×–8×**, with quick presets and a one-key toggle back to normal speed.
 - **Audio sync:** when sound arrives before the picture, add up to **5 seconds** of delay. Adjust in 500 ms steps or enter an exact value.
-- **Dialogue focus:** reduce background noise with local RNNoise speech enhancement. Adjust **Filter mix** to blend original and filtered sound.
-- **Your controls:** a compact Studio Deck panel with configurable keyboard shortcuts. Changes affect your current tab, not your other open tabs.
+- **Dialogue focus:** reduce background noise with local RNNoise speech enhancement. Use the mix slider to blend original and filtered sound.
+- **Your controls:** a compact panel with configurable keyboard shortcuts. Playback changes affect your current tab, not your other open tabs.
 
 ## Install
 
@@ -21,17 +21,17 @@
 
 If you use the separate **Audio Sync** add-on, disable it first to avoid conflicting audio processing.
 
-1. [Download Playback Plus 1.7.0 (.xpi)](https://github.com/HalcyonXP/playback-plus/releases/download/v1.7.0/playback-plus-1.7.0.xpi) and save the file.
+1. [Download Playback Plus 1.8.0 (.xpi)](https://github.com/HalcyonXP/playback-plus/releases/download/v1.8.0/playback-plus-1.8.0.xpi) and save the file.
 2. In Developer Edition or Nightly, open `about:config` and set `xpinstall.signatures.required` to `false`. **This disables signature enforcement; only do so if you understand the security implications.**
 3. Open `about:addons` → gear menu → **Install Add-on From File…** and select the XPI.
 4. Accept the permissions, reload your media tabs, then open **Playback Plus** from Firefox’s Extensions menu.
 
-[Release notes and SHA-256 checksum](https://github.com/HalcyonXP/playback-plus/releases/tag/v1.7.0)
+[Release notes and SHA-256 checksum](https://github.com/HalcyonXP/playback-plus/releases/tag/v1.8.0)
 
 <details>
 <summary>Try it temporarily in standard Firefox</summary>
 
-1. Download **Source code (zip)** from the [release page](https://github.com/HalcyonXP/playback-plus/releases/tag/v1.7.0) and extract it.
+1. Download **Source code (zip)** from the [release page](https://github.com/HalcyonXP/playback-plus/releases/tag/v1.8.0) and extract it.
 2. Open `about:debugging#/runtime/this-firefox` in Firefox.
 3. Select **Load Temporary Add-on…** and choose the extracted `manifest.json`.
 4. Reload your media tabs.
@@ -51,7 +51,9 @@ Open the extension to change speed, or choose **Audio sync**, **Dialogue focus**
 
 Shortcuts work while the webpage has focus. Customize them in **Configuration**; audio shortcuts start unassigned. Click a binding and press a key to change it, or press **Escape** during capture to clear it.
 
-- Your latest speed choice becomes the starting speed for new tabs; existing tabs keep their own speed.
+- **Default for new tabs:** choose a speed, then click **Save** beneath the presets. The displayed default stays fixed until you save again—even when playback speed changes. Existing tabs keep their own speed.
+- Fresh installs start with a **1×** default. Upgrading keeps an existing saved default, or fixes the previously used new-tab starting speed as the initial default.
+- Choose a preset from **0.5×, 1×, 1.5×, 2×, 2.5× or 3×**, or adjust in 0.25× steps with +/−. Both glide the knob while playback changes immediately; reduced-motion settings skip the glide.
 - Audio sync and Dialogue focus start **Off**. Changing a value does not turn either feature on.
 - Audio settings survive a same-page reload but reset when you navigate to a different page. Switching tabs does not stop processing.
 
