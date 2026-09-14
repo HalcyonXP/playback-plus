@@ -10,6 +10,23 @@ ad.querySelector('#dialogueInfo').click();
 check(!dialogueHelp.hidden && ad.documentElement.scrollWidth <= 360, 'dialogue info fits the popup width');
 ad.querySelector('#dialogueInfo').click();
 const dialogue = (type, fields = {}) => request(audio.id, 'DIALOGUE_' + type, fields);
+// Assign all new shortcuts through the actual popup, then dispatch physical codes in the page.
+ad.querySelector('#configButton').click();
+check(ad.querySelectorAll('.hotkey-button').length === 9 && !ad.querySelector('.config-note'), 'nine-key Familiar list has no bottom Voice Clarity note');
+for (const [action, code] of [['Toggle','KeyV'],['Increase','KeyB'],['Decrease','KeyC']]) {
+  const button = ad.querySelector('#dialogue' + action + 'KeyButton');
+  check(button.textContent === 'Not set', 'Voice Clarity ' + action + ' shortcut starts unassigned');
+  button.click();
+  for (const type of ['keydown','keyup']) ad.dispatchEvent(new ap.contentWindow.KeyboardEvent(type,{code,bubbles:true,cancelable:true}));
+  await waitFor(async () => { if ((await browser.storage.sync.get('hotkeys')).hotkeys['dialogue'+action] !== code || button.disabled) throw new Error('Voice shortcut save pending'); });
+}
+await press(audio.id, 'KeyC');
+await waitFor(async () => { if ((await audioState()).dialogueMix !== 90) throw new Error('Mix down pending'); });
+check(!(await audioState()).dialogueEnabled, 'mix shortcut adjusts by 10 points without enabling filter');
+await press(audio.id, 'KeyB');
+await waitFor(async () => { if ((await audioState()).dialogueMix !== 100) throw new Error('Mix up pending'); });
+check((await request(audioOther.id,'AUDIO_SYNC_GET')).dialogueMix === 100, 'Voice Clarity shortcuts leave the other tab unchanged');
+ad.querySelector('#backButton').click();
 const mixControl = ad.querySelector('#dialogueMix');
 mixControl.value = '0';
 mixControl.dispatchEvent(new ap.contentWindow.Event('input', { bubbles: true }));
@@ -19,7 +36,7 @@ await waitFor(async () => {
   if (s.dialogueMix !== 0 || ad.querySelector('#dialogueEnabled').disabled) throw new Error('Mix save pending');
   check(!s.dialogueEnabled, 'Filter mix can be selected while Off without enabling RNNoise');
 });
-ad.querySelector('#dialogueEnabled').click();
+await press(audio.id, 'KeyV');
 await waitFor(async () => {
   const s = await audioStatus();
   if (s.frames.reduce((n, f) => n + (f.dialogueConnected || 0), 0) < 5) throw new Error('RNNoise not connected: ' + JSON.stringify(s));
@@ -93,14 +110,15 @@ const fallback = await page(async () => {
   return Math.sqrt(v.reduce((n, x) => n + x*x, 0) / v.length);
 });
 check(fallback > 0.1 && (await audioState()).dialogueEnabled, 'processor failure returns real unfiltered samples while retaining requested On state');
-await waitFor(async () => { if (!ad.querySelector('#dialogueError').textContent.includes('suddenly louder')) throw new Error('Inline failure warning pending'); });
-check(ad.querySelector('#dialogueError').getClientRects().length && dialogueHelp.hidden, 'sudden-loudness failure warning is visible inline without opening info');
-await dialogue('ENABLE', { enabled: false });
-await dialogue('ENABLE', { enabled: true });
+check(!ad.querySelector('#audioStatus,#audioError,#dialogueStatus,#dialogueError') && dialogueHelp.hidden,
+  'processor failure leaves the popup quiet with on-demand safety guidance retained');
+await press(audio.id, 'KeyV');
+await waitFor(async () => { if ((await audioState()).dialogueEnabled) throw new Error('Shortcut Off pending'); });
+await press(audio.id, 'KeyV');
 await waitFor(async () => {
   const s = await audioStatus();
   if (s.frames.some(f => f.dialogueFailed) || s.frames.reduce((n, f) => n + (f.dialogueConnected || 0), 0) < 5) throw new Error('Retry pending: ' + JSON.stringify(s));
 });
-check(true, 'Off/On retries RNNoise successfully after failure');
+check(true, 'Voice Clarity shortcut Off/On retries RNNoise successfully after failure');
 await dialogue('ENABLE', { enabled: false });
 await dialogue('MIX', { mix: 37 });

@@ -1,6 +1,6 @@
 {
   "name": "playback-plus-firefox-extension",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "license": "MIT",
   "private": true,
   "description": "Development and validation scripts for the persistent Playback Plus Firefox extension.",

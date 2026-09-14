@@ -22,6 +22,7 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 
 ROOT = Path(__file__).resolve().parents[1]
+EXPECTED_CASES = 25
 DRIVER = r"""
 (async () => {
   const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -85,19 +86,31 @@ DRIVER = r"""
       await report(view + '-collapsed');
       await report('main-after-' + view);
     }
+    if (document.querySelector('#audioStatus,#audioError,#dialogueStatus,#dialogueError')) throw new Error('Automatic audio status/warnings must be absent');
+    for (const id of ['audioEnabled','dialogueEnabled']) {
+      el(id).click();
+      await waitFor(() => !el(id).disabled && el(id).getAttribute('aria-checked') === 'true', 'Audio On pending');
+      const on = await report(id + '-on');
+      if (on.innerHeight !== main.innerHeight || on.bodyHeight !== main.bodyHeight) throw new Error('Audio activation resized popup');
+      el(id).click();
+      await waitFor(() => !el(id).disabled && el(id).getAttribute('aria-checked') === 'false', 'Audio Off pending');
+    }
     el('configButton').click();
+    if (document.querySelectorAll('.hotkey-button').length !== 9 || document.querySelector('.config-note')) throw new Error('Expected nine keys, no bottom Voice Clarity note');
+    const descriptions = [...document.querySelectorAll('.hotkey-row p')].map(e => e.textContent);
+    if (descriptions.filter(s=>s==='On/Off').length !== 2 || descriptions.filter(s=>s==='By 10%').length !== 2) throw new Error('Approved shortcut labels missing');
     const configuration = await report('configuration');
     const instruction = 'Choose a shortcut. Press a key. Escape clears it.';
     const positions = () => JSON.stringify([el('hotkeyHint'), ...document.querySelectorAll('.hotkey-row,.hotkey-button')].map(e=>e.getBoundingClientRect().toJSON()));
     const originalPositions = positions();
-    el('audioIncreaseKeyButton').click();
+    el('dialogueIncreaseKeyButton').click();
     const capture = await report('configuration-capture');
-    if (capture.innerHeight !== configuration.innerHeight || capture.bodyHeight !== configuration.bodyHeight || positions() !== originalPositions || el('hotkeyHint').textContent !== instruction || el('audioIncreaseKeyButton').textContent !== 'Press key…') throw new Error('Capture must not rewrite the instruction or resize/move the controls');
+    if (capture.innerHeight !== configuration.innerHeight || capture.bodyHeight !== configuration.bodyHeight || positions() !== originalPositions || el('hotkeyHint').textContent !== instruction || el('dialogueIncreaseKeyButton').textContent !== 'Press key…') throw new Error('Capture must not rewrite the instruction or resize/move the controls');
     document.dispatchEvent(new KeyboardEvent('keydown', {code:'NumpadAdd', bubbles:true}));
     document.dispatchEvent(new KeyboardEvent('keyup', {code:'NumpadAdd', bubbles:true}));
     await report('configuration-duplicate');
     if (!el('hotkeyFeedback').textContent.includes('already assigned') || el('hotkeyHint').textContent !== instruction || positions() !== originalPositions) throw new Error('Duplicate feedback must stay separate from the fixed instruction and controls');
-    el('audioIncreaseKeyButton').click();
+    el('dialogueIncreaseKeyButton').click();
     const cancelled = await report('configuration-cancelled');
     if (cancelled.innerHeight !== configuration.innerHeight || el('hotkeyFeedback').textContent || positions() !== originalPositions) throw new Error('Cancel must restore quiet configuration');
     el('shortcutDetails').querySelector('summary').click();
@@ -204,7 +217,7 @@ def main():
                     # outer XUL browser (that does not resize its content viewport).
                     browser.execute_script("""document.querySelector('.webextension-popup-browser').messageManager.sendAsyncMessage(
                       'Extension:InitBrowser', {fixedWidth: false, maxWidth: 800, maxHeight: arguments[0], allowScriptsToClose: true});""", args.height_cap)
-                for _ in range(25):
+                for _ in range(EXPECTED_CASES + 1):  # Include the final completion message.
                     result, resume = reports.get(timeout=35)
                     try:
                         if result.get('done'):
@@ -243,7 +256,7 @@ def main():
         server.shutdown(); server.server_close()
     (output / (args.label + '.json')).write_text(json.dumps(results, indent=2), encoding='utf-8')
     if not args.observe_only:
-        assert len(results) == 23, 'All native sizing cases must complete'
+        assert len(results) == EXPECTED_CASES, 'All native sizing cases must complete'
         cap = args.height_cap or 600
         for r in results:
             assert r['innerWidth'] == 360 and r['scrollWidth'] == 360, r

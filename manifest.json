@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Playback Plus",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "Per-tab playback speed, optional audio delay and local RNNoise speech enhancement.",
   "icons": {
     "16": "icons/icon-16.png",

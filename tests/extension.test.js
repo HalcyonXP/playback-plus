@@ -265,7 +265,7 @@ test("manifest and popup expose tab-local media control and session persistence"
   const manifest = JSON.parse(readSource("manifest.json"));
   const popup = readSource("popup/popup.html");
   assert.equal(manifest.name, "Playback Plus");
-  assert.equal(manifest.version, "1.9.0");
+  assert.equal(manifest.version, "1.10.0");
   assert.equal(manifest.action.default_title, "Playback Plus");
   assert.equal(manifest.browser_specific_settings.gecko.id, "video-speed@local");
   assert.match(popup, /<title>Playback Plus<\/title>/);

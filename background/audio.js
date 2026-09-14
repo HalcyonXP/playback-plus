@@ -1,7 +1,7 @@
 (() => {
   "use strict";
   const KEY = "videoAudioState";
-  const TYPES = new Set(["AUDIO_SYNC_GET", "AUDIO_SYNC_SET", "AUDIO_SYNC_NUDGE", "AUDIO_SYNC_ENABLE", "AUDIO_SYNC_TOGGLE", "DIALOGUE_ENABLE", "DIALOGUE_MIX"]);
+  const TYPES = new Set(["AUDIO_SYNC_GET", "AUDIO_SYNC_SET", "AUDIO_SYNC_NUDGE", "AUDIO_SYNC_ENABLE", "AUDIO_SYNC_TOGGLE", "DIALOGUE_ENABLE", "DIALOGUE_MIX", "DIALOGUE_TOGGLE", "DIALOGUE_NUDGE"]);
   const { normalize, transition } = globalThis.VideoAudioUtils;
   globalThis.installVideoAudioBackground = (enqueue) => {
     async function get(tabId) {

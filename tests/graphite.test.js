@@ -29,7 +29,7 @@ test("GB1 Graphite markup preserves accessible control names without retired bra
   assert.doesNotMatch(html, /shortcut-scope|Shared shortcuts; changes affect the current tab/);
   assert.equal([...html.matchAll(/id="hotkeyHint"/g)].length, 1);
   assert.match(html, /id="hotkeyFeedback"[^>]+role="status"[^>]+aria-live="polite"[^>]+aria-atomic="true"/);
-  assert.equal([...html.matchAll(/aria-describedby="hotkeyHint hotkeyFeedback"/g)].length, 6);
+  assert.equal([...html.matchAll(/aria-describedby="hotkeyHint hotkeyFeedback"/g)].length, 9);
   assert.doesNotMatch(readSource("popup/popup.js"), /elements\.hotkeyHint/);
   assert.doesNotMatch(css, /default-setting|#defaultSpeed\.inactive|\.header/);
   assert.match(css, /\.default-readout\s*\{[^}]*cursor: default/);

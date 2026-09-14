@@ -2,9 +2,9 @@
 
 **Your playback, your pace.** Control playback speed, sound timing and dialogue in Firefox—independently for each tab.
 
-**Version 1.9.0 · Firefox 142+** · **[Download unsigned XPI](https://github.com/HalcyonXP/playback-plus/releases/download/v1.9.0/playback-plus-1.9.0.xpi)**
+**Version 1.10.0 · Firefox 142+** · **[Download unsigned XPI](https://github.com/HalcyonXP/playback-plus/releases/download/v1.10.0/playback-plus-1.10.0.xpi)**
 
-[![Playback Plus 1.9.0 Charcoal / Ice blue interface: unified Playback Speed, Audio Sync and Voice Clarity controls, with separate keyboard shortcut configuration.](docs/images/playback-plus-overview.png)](docs/images/playback-plus-overview.png)
+[![Playback Plus 1.10.0 Charcoal / Ice blue interface: unified Playback Speed, Audio Sync and Voice Clarity controls, with separate keyboard shortcut configuration.](docs/images/playback-plus-overview.png)](docs/images/playback-plus-overview.png)
 
 *Playback and audio controls together, with separate shortcut configuration. Shown with example settings; click the image for a closer look.*
 
@@ -15,23 +15,23 @@
 - **Playback speed:** watch or listen at **0.25×–8×**, with quick presets and a one-key toggle back to normal speed.
 - **Audio Sync:** when sound arrives before the picture, add up to **5 seconds** of delay. Adjust in 500 ms steps or enter an exact value.
 - **Voice Clarity:** reduce background noise with local RNNoise speech enhancement. Use the mix slider to blend original and filtered sound.
-- **Your controls:** a compact panel with configurable keyboard shortcuts. Playback changes affect your current tab, not your other open tabs.
+- **Your controls:** a compact panel with nine configurable keyboard shortcuts for speed, audio delay and filter mix. Playback changes affect your current tab, not your other open tabs.
 
 ## Install
 
 **This release is unsigned.** Permanent installation requires **Firefox Developer Edition or Nightly 142+**. Standard Firefox requires a signed extension; use the temporary option below to try it instead.
 
-1. [Download Playback Plus 1.9.0 (.xpi)](https://github.com/HalcyonXP/playback-plus/releases/download/v1.9.0/playback-plus-1.9.0.xpi) and save the file.
+1. [Download Playback Plus 1.10.0 (.xpi)](https://github.com/HalcyonXP/playback-plus/releases/download/v1.10.0/playback-plus-1.10.0.xpi) and save the file.
 2. In Developer Edition or Nightly, open `about:config` and set `xpinstall.signatures.required` to `false`. **This disables signature enforcement; only do so if you understand the security implications.**
 3. Open `about:addons` → gear menu → **Install Add-on From File…** and select the XPI.
 4. Accept the permissions, reload your media tabs, then open **Playback Plus** from Firefox’s Extensions menu.
 
-[Release notes and SHA-256 checksum](https://github.com/HalcyonXP/playback-plus/releases/tag/v1.9.0)
+[Release notes and SHA-256 checksum](https://github.com/HalcyonXP/playback-plus/releases/tag/v1.10.0)
 
 <details>
 <summary>Try it temporarily in standard Firefox</summary>
 
-1. Download **Source code (zip)** from the [release page](https://github.com/HalcyonXP/playback-plus/releases/tag/v1.9.0) and extract it.
+1. Download **Source code (zip)** from the [release page](https://github.com/HalcyonXP/playback-plus/releases/tag/v1.10.0) and extract it.
 2. Open `about:debugging#/runtime/this-firefox` in Firefox.
 3. Select **Load Temporary Add-on…** and choose the extracted `manifest.json`.
 4. Reload your media tabs.
@@ -44,14 +44,16 @@ Temporary installation lasts until Firefox closes. No change to signature settin
 
 Open the extension for **Playback Speed**, **Audio Sync** and **Voice Clarity** together. **Configuration** opens your shortcut settings.
 
-Hover over or focus an **ⓘ** button for help; click to pin it. With the info button focused, use arrow keys or Page Up/Down to scroll and **Escape** to close. Errors remain visible beside the controls.
+Hover over or focus an **ⓘ** button for help; click to pin it. With the info button focused, use arrow keys or Page Up/Down to scroll and **Escape** to close. The audio controls stay quiet: no automatic status or failure messages appear beneath them. **On** shows your requested setting, not confirmation that every player is being processed.
 
 | Shortcut | Action |
 | --- | --- |
 | **Numpad 0** | Toggle between 1× and this tab’s last alternate speed |
 | **Numpad + / −** | Increase or decrease speed by 0.25× |
+| **Unassigned — Audio Sync** | Toggle On/Off, increase or decrease delay by 500 ms |
+| **Unassigned — Voice Clarity** | Toggle On/Off, increase or decrease filter mix by 10% |
 
-Shortcuts work while the webpage has focus. Customize them in **Configuration**; audio shortcuts start unassigned. Click a binding and press a key to change it, or press **Escape** during capture to clear it.
+Shortcuts work while the webpage has focus. Customize them in **Configuration**; audio shortcuts start unassigned. Click a binding and press a key to change it, or press **Escape** during capture to clear it. A key can belong to only one action. “By 10%” changes mix by 10 percentage points (50% → 60%), within 0–100%, without turning the filter On.
 
 - **Default for new tabs:** choose a speed, then click **Save** beneath the presets. The displayed default stays fixed until you save again—even when playback speed changes. Existing tabs keep their own speed.
 - Fresh installs start with a **1×** default. Upgrading keeps an existing saved default, or fixes the previously used new-tab starting speed as the initial default.
@@ -64,7 +66,7 @@ Shortcuts work while the webpage has focus. Customize them in **Configuration**;
 - Support varies by website. Protected pages, DRM video and some players cannot be controlled.
 - Audio Sync **delays sound only**; it cannot advance late audio.
 - Voice Clarity enhances mixed audio—it does not isolate a chosen speaker or guarantee noise removal. It can affect voices and music, and adds about **30 ms** of processing delay even at 0% mix, plus browser/device latency.
-- **If filtering fails, original sound can return suddenly louder.** Start at a comfortable volume. If audio sounds wrong or disappears, turn **both audio features Off and reload the page** to restore native playback. Turning Off alone does not fully restore the native audio path after activation.
+- **If filtering fails, original sound can return suddenly louder, without an automatic popup warning.** Start at a comfortable volume. If audio sounds wrong or disappears, turn **both audio features Off and reload the page** to restore native playback. Turning Off alone does not fully restore the native audio path after activation.
 
 ## Privacy
 

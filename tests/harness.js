@@ -236,7 +236,12 @@ function createHarness({ defaults = { playbackSpeed: 2, lastNon1xSpeed: 2 }, tab
       frames.set(tabId, [...(frames.get(tabId) ?? []), frame]);
       run("content/content.js", {
         console, document, MutationObserver, Node: { ELEMENT_NODE: 1 },
-        VideoAudioBridge: { act(action) { void harness.request(action === "audioToggle" ? { type: "AUDIO_SYNC_TOGGLE" } : { type: "AUDIO_SYNC_NUDGE", direction: action === "audioIncrease" ? 1 : -1 }, { tab: { id: tabId } }); } },
+        VideoAudioBridge: { act(action) {
+          const dialogue = action.startsWith("dialogue");
+          const message = action.endsWith("Toggle") ? { type: dialogue ? "DIALOGUE_TOGGLE" : "AUDIO_SYNC_TOGGLE" }
+            : { type: dialogue ? "DIALOGUE_NUDGE" : "AUDIO_SYNC_NUDGE", direction: action.endsWith("Increase") ? 1 : -1 };
+          void harness.request(message, { tab: { id: tabId } });
+        } },
         addEventListener(type, listener) {
           events.set(type, [...(events.get(type) ?? []), listener]);
         },

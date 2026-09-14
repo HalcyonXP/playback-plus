@@ -71,9 +71,13 @@ def suite(parent,child):
  assert child("document.getElementById('dialogueSafety').getBoundingClientRect().height>0")
  child("document.getElementById('configButton').click()")
  assert child("document.getElementById('dialogueDetails').hidden"), 'Configuration closes info'
- child("document.getElementById('audioIncreaseKeyButton').click()")
- assert child("document.getElementById('audioIncreaseKeyButton').textContent")=='Press key…'
+ child("document.getElementById('dialogueIncreaseKeyButton').click()")
+ assert child("document.getElementById('dialogueIncreaseKeyButton').textContent")=='Press key…'
  assert child("document.getElementById('hotkeyHint').textContent")=='Choose a shortcut. Press a key. Escape clears it.'
+ assert child("document.querySelectorAll('.hotkey-button').length")==9
+ assert child("document.querySelectorAll('#audioStatus,#audioError,#dialogueStatus,#dialogueError,.config-note').length")==0
+ assert child("[...document.querySelectorAll('.hotkey-row p')].filter(e=>e.textContent==='On/Off').length")==2
+ assert child("[...document.querySelectorAll('.hotkey-row p')].filter(e=>e.textContent==='By 10%').length")==2
  # Automatic resources stay on the hosting origin (including a browser favicon probe).
  for resources in [parent("performance.getEntriesByType('resource').map(r=>r.name)"),child("performance.getEntriesByType('resource').map(r=>r.name)")]:
   assert all(url.startswith(URL.split('/playback-plus/')[0]+'/') for url in resources),resources

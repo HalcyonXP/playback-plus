@@ -110,7 +110,12 @@ def main():
                 assert driver.execute_script("return matchMedia('(prefers-reduced-motion: reduce)').matches")
                 assert driver.execute_script("return parseFloat(getComputedStyle(document.querySelector('#audioEnabled'),'::after').transitionDuration)") <= 0.00001
 
+            def set_report(fields):
+                revision = driver.execute_script('return fixtureApi.setAudioReport(arguments[0])', fields)
+                wait.until(lambda _: driver.execute_script('return fixtureApi.audioReportRead') >= revision)
+
             def layout(name):
+                assert not driver.find_elements(By.CSS_SELECTOR, '#audioStatus,#dialogueStatus,#audioError,#dialogueError,.config-note')
                 metrics = driver.execute_script('''
                     document.scrollingElement.scrollTop = 0; document.body.scrollTop = 0;
                     const visible = [...document.querySelectorAll('main *')].filter(e => e.getClientRects().length && e.getBoundingClientRect().height);
@@ -276,7 +281,7 @@ def main():
                     layout('audio-max')
                     exact.click()
                     ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys('12.5', Keys.ENTER).perform()
-                    wait.until(lambda _: 'whole number' in find('audioError').text)
+                    wait.until(lambda _: find('audioExact').get_attribute('value') == '5000')
                     layout('audio-invalid')
                     exact.click()
                     ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys('0', Keys.ENTER).perform()
@@ -287,17 +292,13 @@ def main():
                     wait.until(lambda _: find('dialogueValue').text == '0%' and switch.is_enabled())
                     mix.send_keys(Keys.END)
                     wait.until(lambda _: find('dialogueValue').text == '100%' and switch.is_enabled())
-                    driver.execute_script('fixtureApi.setAudioReport({unsupported: 1})')
-                    wait.until(lambda _: find('dialogueStatus').text.startswith('Limited support'))
+                    set_report({'unsupported': 1})
                     layout('dialogue-partial')
                     layout('main-partial')
-                    driver.execute_script('fixtureApi.setAudioReport({dialogueConnected: 0, dialogueFailed: 1, dialogueError: "RNNoise failed. Using unfiltered audio. Turn Off and On to retry."})')
-                    wait.until(lambda _: 'Turn it Off and On' in find('dialogueError').text)
-                    assert 'RNNoise' not in find('dialogueError').text
+                    set_report({'dialogueConnected': 0, 'dialogueFailed': 1, 'dialogueError': 'Private filter failure detail'})
                     assert switch.get_attribute('aria-checked') == 'true'
                     layout('dialogue-failure')
-                    driver.execute_script('fixtureApi.setAudioReport({})')
-                    wait.until(lambda _: not find('dialogueError').text)
+                    set_report({})
                 switch.send_keys(Keys.SPACE)
                 wait.until(lambda _: switch.get_attribute('aria-checked') == 'false' and switch.is_enabled())
                 details = find(view + 'Details')
@@ -327,35 +328,33 @@ def main():
                 assert not details.is_displayed()
             # The approved no-media design has neither inline availability copy
             # nor an overlay. Empty/restricted/paused pages are not engine failures.
-            absent = 'fixtureApi.setAudioReport({media:0,eligible:0,connected:0,dialogueConnected:0})'
-            driver.execute_script(absent)
+            absent = {'media':0, 'eligible':0, 'connected':0, 'dialogueConnected':0}
+            set_report(absent)
             wait.until(lambda _: not find('audioEnabled').is_enabled())
-            assert not find('audioStatus').text and not find('audioError').text
             layout('audio-no-media')
             assert not find('availabilityText').text and find('saveDefault').is_enabled()
             layout('main-no-media')
             wait.until(lambda _: not find('dialogueEnabled').is_enabled())
-            assert not find('dialogueStatus').text and not find('dialogueError').text
             layout('dialogue-no-media')
             find('configButton').click()
             assert find('toggleKeyButton').is_enabled()
             assert not driver.find_elements(By.CSS_SELECTOR, '.unavailable-overlay, .unavailable-message, [inert]')
             layout('configuration-no-media')
             find('backButton').click()
-            driver.execute_script('fixtureApi.setAudioReport({})')
+            set_report({})
             wait.until(lambda _: find('audioEnabled').is_enabled())
             find('audioEnabled').click()
             wait.until(lambda _: find('audioEnabled').get_attribute('aria-checked') == 'true' and find('audioEnabled').is_enabled())
             driver.execute_script("return fixtureApi.message({type:'DIALOGUE_ENABLE',enabled:true})")
-            driver.execute_script(absent)
-            wait.until(lambda _: find('audioEnabled').get_attribute('aria-checked') == 'true' and not find('audioStatus').text)
+            set_report(absent)
+            wait.until(lambda _: find('audioEnabled').get_attribute('aria-checked') == 'true')
             assert find('audioEnabled').is_enabled(), 'Off remains usable after media disappears'
             layout('audio-no-media-on')
-            wait.until(lambda _: find('dialogueEnabled').get_attribute('aria-checked') == 'true' and not find('dialogueStatus').text)
+            wait.until(lambda _: find('dialogueEnabled').get_attribute('aria-checked') == 'true')
             assert find('dialogueEnabled').is_enabled(), 'Filter Off remains usable after media disappears'
             layout('dialogue-no-media-on')
-            driver.execute_script('fixtureApi.setAudioReport({})')
-            wait.until(lambda _: find('dialogueStatus').text.startswith('On'))
+            set_report({})
+            assert find('dialogueEnabled').get_attribute('aria-checked') == 'true'
             driver.execute_script("return fixtureApi.message({type:'AUDIO_SYNC_ENABLE',enabled:false})")
             driver.execute_script("return fixtureApi.message({type:'DIALOGUE_ENABLE',enabled:false})")
             find('configButton').click()
@@ -373,7 +372,10 @@ def main():
                     rects:[document.getElementById('hotkeyHint'), ...document.querySelectorAll('.hotkey-row,.hotkey-button')].map(e=>{const r=e.getBoundingClientRect();return [r.x,r.y,r.width,r.height]})};
                 """)
             stable = config_positions()
-            key_ids = ['toggleKeyButton','increaseKeyButton','decreaseKeyButton','audioToggleKeyButton','audioIncreaseKeyButton','audioDecreaseKeyButton']
+            key_ids = ['toggleKeyButton','increaseKeyButton','decreaseKeyButton','audioToggleKeyButton','audioIncreaseKeyButton','audioDecreaseKeyButton','dialogueToggleKeyButton','dialogueIncreaseKeyButton','dialogueDecreaseKeyButton']
+            assert len(driver.find_elements(By.CSS_SELECTOR, '.hotkey-button')) == 9
+            assert [e.text for e in driver.find_elements(By.CSS_SELECTOR, '.hotkey-row p')].count('On/Off') == 2
+            assert [e.text for e in driver.find_elements(By.CSS_SELECTOR, '.hotkey-row p')].count('By 10%') == 2
             original_labels = {id: find(id).text for id in key_ids}
             for id in key_ids:
                 find(id).click()
@@ -408,7 +410,7 @@ def main():
             summary.send_keys(Keys.ENTER)
             wait.until(lambda _: find('shortcutDetails').get_attribute('open'))
             layout('configuration-help')
-            print(json.dumps({'passed': True, 'checks': 'GB1 ice-blue readouts, amber warnings, rounded frame, Graphite ruled action materials, centred default row, non-interactive playback-only readout, snapshot Save/re-save, visual-only preset and +/- glide and interruption, stable compact hotkey targets/fixed instruction/separate feedback, stationary flat press state, centred +/- strokes, speed/mix keyboard endpoints, exact-delay bounds/errors, partial/failure status, shortcut capture, layout, unified controls and hover/focus/pinned/Escape info', 'views': results}, indent=2))
+            print(json.dumps({'passed': True, 'checks': 'GB1 ice-blue readouts, amber warnings, rounded frame, Graphite ruled action materials, centred default row, non-interactive playback-only readout, snapshot Save/re-save, visual-only preset and +/- glide and interruption, stable compact hotkey targets/fixed instruction/separate feedback, stationary flat press state, centred +/- strokes, speed/mix keyboard endpoints, exact-delay bounds/quiet rollback, quiet partial/failure state, shortcut capture, layout, unified controls and hover/focus/pinned/Escape info', 'views': results}, indent=2))
     finally:
         server.shutdown()
         server.server_close()

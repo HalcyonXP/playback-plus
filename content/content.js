@@ -173,7 +173,7 @@
 
     const action = ACTIONS.find(name => hotkeys[name] && hotkeys[name] === event.code);
     if (!action) return;
-    if (action.startsWith("audio")) {
+    if (action.startsWith("audio") || action.startsWith("dialogue")) {
       if (!globalThis.VideoAudioBridge) return;
       event.preventDefault();
       event.stopImmediatePropagation();

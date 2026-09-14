@@ -3,7 +3,8 @@
 
   const HOTKEYS_KEY = "hotkeys";
   const DEFAULT_HOTKEYS = Object.freeze({ toggle: "Numpad0", increase: "NumpadAdd", decrease: "NumpadSubtract",
-    audioToggle: null, audioIncrease: null, audioDecrease: null });
+    audioToggle: null, audioIncrease: null, audioDecrease: null,
+    dialogueToggle: null, dialogueIncrease: null, dialogueDecrease: null });
   const ACTIONS = Object.freeze(Object.keys(DEFAULT_HOTKEYS));
 
   // Physical codes distinguish the numpad and work with Num Lock off.

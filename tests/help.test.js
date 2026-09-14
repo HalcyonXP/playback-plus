@@ -79,8 +79,9 @@ test("unified markup keeps real controls and complete safety help without retire
   assert.doesNotMatch(html+audio, /Audio sync/);
   assert.equal([...html.matchAll(/data-help=/g)].length, 2);
   assert.equal([...html.matchAll(/class="info-panel" role="tooltip" hidden/g)].length, 2);
-  for (const id of ["audioStatus","audioError","dialogueStatus","dialogueError"]) assert.match(html.match(new RegExp(`<p id="${id}"[^>]*>`))[0], /role="status" aria-live="polite"/);
-  assert.match(audio, /Original sound may return suddenly louder/);
+  assert.doesNotMatch(html + audio, /audioStatus|audioError|dialogueStatus|dialogueError/);
+  assert.match(html, /original sound may return suddenly louder/i);
+  assert.match(html, /On shows your requested setting/);
   assert.match(html, /turn both Off and reload|turn both audio features Off and reload/i);
   assert.match(css, /\.audio-deck \{[^}]*padding-top: 1px/);
   assert.match(css, /\.info-panel \{[^}]*position: fixed[^}]*overflow-y: auto/);

@@ -86,13 +86,24 @@
   }
   globalThis.VideoAudioBridge = {
     act(action) {
-      const message = action === "audioToggle" ? { type: "AUDIO_SYNC_TOGGLE" }
-        : { type: "AUDIO_SYNC_NUDGE", direction: action === "audioIncrease" ? 1 : -1 };
+      // Relative actions are applied atomically by the background writer, never
+      // computed from this frame's possibly stale state. Unknown actions do nothing.
+      const actions = {
+        audioToggle: { type: "AUDIO_SYNC_TOGGLE" },
+        audioIncrease: { type: "AUDIO_SYNC_NUDGE", direction: 1 },
+        audioDecrease: { type: "AUDIO_SYNC_NUDGE", direction: -1 },
+        dialogueToggle: { type: "DIALOGUE_TOGGLE" },
+        dialogueIncrease: { type: "DIALOGUE_NUDGE", direction: 1 },
+        dialogueDecrease: { type: "DIALOGUE_NUDGE", direction: -1 }
+      };
+      const message = Object.hasOwn(actions, action) ? actions[action] : null;
+      if (!message) return;
+      const quiet = action.startsWith("dialogue");
       void browser.runtime.sendMessage(message).then(async next => {
         await adopt(next);
-        toast(failure ? "Audio Sync isn't available here. Try reloading the page."
+        if (!quiet) toast(failure ? "Audio Sync isn't available here. Try reloading the page."
           : `Audio Sync · ${next.delayMs} ms selected · ${next.enabled ? "On" : "Off"}`);
-      }).catch(() => toast("Couldn't change Audio Sync. Please try again."));
+      }).catch(() => { if (!quiet) toast("Couldn't change Audio Sync. Please try again."); });
     }
   };
   browser.runtime.onMessage.addListener(message => {

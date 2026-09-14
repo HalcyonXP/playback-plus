@@ -72,6 +72,7 @@
                 <p id="audioSafety" class="safety-note">If sound fails, turn both audio features Off and reload the page.</p>
                 <p>For this tab only. Reloading keeps the setting; visiting a different page turns Audio Sync Off and resets the delay.</p>
                 <p>Some websites or players may not support audio adjustments.</p>
+                <p>On shows your requested setting, not confirmation that processing works. Audio status and failure messages are not shown automatically. If audio needs permission to start, click the page.</p>
                 <p>Your audio is unchanged until you turn on an audio feature. After using one, turn both Off and reload to fully restore the player's normal sound.</p>
                 <p>Turning Audio Sync Off removes only its delay, not the small delay added by Voice Clarity.</p>
               </aside>
@@ -89,8 +90,6 @@
               <button class="navigation-button" id="audioIncrease" disabled type="button">+500 ms</button>
             </div>
             <button class="navigation-button reset" id="audioReset" disabled type="button">Reset</button>
-            <p id="audioStatus" class="channel-status" role="status" aria-live="polite"></p>
-            <p id="audioError" class="audio-error" role="status" aria-live="polite"></p>
           </section>
           <section id="dialogueControls" class="channel voice-channel" aria-labelledby="dialogueHeading">
             <div class="channel-heading">
@@ -103,6 +102,7 @@
                 <p class="info-hint">Use ↑/↓ or Page Up/Down to scroll. Escape closes.</p>
                 <p id="dialogueHelp" class="config-help">100% filtered audio, not 100% noise removal. Lower mixes restore original sound, including noise. Changing the mix does not turn the filter On.</p>
                 <p id="dialogueSafety" class="safety-note">If the filter stops, the original sound may return suddenly louder. Some players may not be filtered.</p>
+                <p>On shows your requested setting, not confirmation that filtering works. Audio status and failure messages are not shown automatically.</p>
                 <p>Sound is processed on your device, never uploaded. Tries to make speech clearer, not isolate a particular person. Music, sirens and quiet or radio voices may also change.</p>
                 <p>Turning it On adds about 30 ms of delay, plus any delay from your browser, even at 0% mix. Audio Sync cannot make late sound arrive earlier.</p>
                 <p>For this tab only, separate from Audio Sync. Reloading keeps settings; visiting a different page turns the filter Off and resets the mix to 100%. Turning it Off keeps your mix.</p>
@@ -121,8 +121,6 @@
                 <span>Filtered</span>
               </div>
             </div>
-            <p id="dialogueStatus" class="channel-status" role="status" aria-live="polite"></p>
-            <p id="dialogueError" class="audio-error" role="status" aria-live="polite"></p>
           </section>
         </div>
         <button id="configButton" class="navigation-button config-button" type="button">
@@ -166,7 +164,7 @@
           <div class="hotkey-row">
             <div class="toggle-copy">
               <h2>Toggle correction</h2>
-              <p>Keeps delay</p>
+              <p>On/Off</p>
             </div>
             <button id="audioToggleKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint hotkeyFeedback" aria-pressed="false" disabled>Not set</button>
           </div>
@@ -185,12 +183,37 @@
             <button id="audioDecreaseKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint hotkeyFeedback" aria-pressed="false" disabled>Not set</button>
           </div>
         </div>
+        <h3 class="hotkey-group-label">Voice Clarity</h3>
+        <div class="hotkey-panel">
+          <div class="hotkey-row">
+            <div class="toggle-copy">
+              <h2>Toggle Voice Clarity</h2>
+              <p>On/Off</p>
+            </div>
+            <button id="dialogueToggleKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint hotkeyFeedback" aria-pressed="false" disabled>Not set</button>
+          </div>
+          <div class="hotkey-row">
+            <div class="toggle-copy">
+              <h2>Increase filter mix</h2>
+              <p>By 10%</p>
+            </div>
+            <button id="dialogueIncreaseKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint hotkeyFeedback" aria-pressed="false" disabled>Not set</button>
+          </div>
+          <div class="hotkey-row">
+            <div class="toggle-copy">
+              <h2>Decrease filter mix</h2>
+              <p>By 10%</p>
+            </div>
+            <button id="dialogueDecreaseKeyButton" class="hotkey-button" type="button" aria-describedby="hotkeyHint hotkeyFeedback" aria-pressed="false" disabled>Not set</button>
+          </div>
+        </div>
         <p id="hotkeyFeedback" class="hotkey-feedback" role="status" aria-live="polite" aria-atomic="true"></p>
         <details id="shortcutDetails" class="help-details">
           <summary>More information</summary>
           <p>The same shortcuts work in every tab, but change only the tab you're using. They are ignored while typing in text fields. Number-row keys can be assigned; they are not enabled by default.</p>
           <p>Click the same shortcut again or go Back to cancel. Escape clears only the shortcut being set. A key cannot be assigned to two actions.</p>
           <p>Quick toggle uses each tab’s last non-1× speed.</p>
+          <p>Voice Clarity mix shortcuts adjust by 10 percentage points (50% → 60%), within 0–100%, without turning the filter On. Both audio toggles retain their selected delay or mix.</p>
         </details>
       </section>
     </main>

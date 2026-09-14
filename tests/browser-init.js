@@ -6,15 +6,16 @@
   let state = { speed: 2, lastNon1xSpeed: 2, revision: 0 };
   let audio = { enabled: false, delayMs: 0, dialogueEnabled: false, dialogueMix: 100, revision: 0 }; // UI fiction, no audio graph.
   const tabId = 42;
+  let audioReportRevision = 0, audioReportRead = 0;
   let audioReport = {}; // Preview-only status injection; never packaged.
 
   async function request(message) {
     const utils = window.VideoSpeedUtils;
     if (message.type === "AUDIO_SYNC_GET") return { ...audio };
-    if (message.type === "AUDIO_SYNC_STATUS_GET") return { state: { ...audio }, frames: [{
+    if (message.type === "AUDIO_SYNC_STATUS_GET") { audioReportRead = audioReportRevision; return { state: { ...audio }, frames: [{
       ...audio, media: 1, eligible: 1, connected: audio.enabled || audio.dialogueEnabled ? 1 : 0, dialogueConnected: audio.dialogueEnabled ? 1 : 0, contextState: audio.enabled || audio.dialogueEnabled ? "running" : "native", ...audioReport
-    }] };
-    if (["AUDIO_SYNC_SET", "AUDIO_SYNC_NUDGE", "AUDIO_SYNC_ENABLE", "AUDIO_SYNC_TOGGLE", "DIALOGUE_ENABLE", "DIALOGUE_MIX"].includes(message.type)) {
+    }] }; }
+    if (["AUDIO_SYNC_SET", "AUDIO_SYNC_NUDGE", "AUDIO_SYNC_ENABLE", "AUDIO_SYNC_TOGGLE", "DIALOGUE_ENABLE", "DIALOGUE_MIX", "DIALOGUE_TOGGLE", "DIALOGUE_NUDGE"].includes(message.type)) {
       audio = window.VideoAudioUtils.transition(audio, message);
       for (const listener of listeners) void listener({ type: "AUDIO_SYNC_CHANGED", tabId, state: { ...audio } });
       return { ...audio };
@@ -69,7 +70,8 @@
   };
   window.fixtureApi = {
     message: request,
-    setAudioReport(report) { audioReport = { ...report }; },
+    setAudioReport(report) { audioReport = { ...report }; return ++audioReportRevision; },
+    get audioReportRead() { return audioReportRead; },
     changeSpeed(speed) { return request({ type: "VIDEO_SPEED_SET", speed }); },
     get storedValues() {
       return { playbackSpeed: state.speed, lastNon1xSpeed: state.lastNon1xSpeed };

@@ -150,7 +150,7 @@ await (async () => {
     return window.__audioTest.nodes.length === before;
   });
   check(untouched, 'new players remain native after correction is switched Off');
-  check(ad.documentElement.scrollWidth <= 360, 'six-key configuration fits popup width');
+  check(ad.documentElement.scrollWidth <= 360, 'nine-key configuration fits popup width');
   __DIALOGUE_TESTS__
   await audioRequest('SET', { delayMs: 222 });
   await browser.tabs.reload(audio.id);

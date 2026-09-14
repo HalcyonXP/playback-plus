@@ -2,6 +2,7 @@
   "use strict";
   const MAX_DELAY_MS = 5000;
   const STEP_MS = 500;
+  const MIX_STEP = 10;
   function delay(value) {
     const number = Number(value);
     if (!Number.isFinite(number)) throw new Error("Enter a finite delay in milliseconds");
@@ -33,6 +34,14 @@
         if (typeof message.enabled !== "boolean") throw new Error("Invalid dialogue state");
         if (message.enabled && !next.dialogueEnabled) next.dialogueRun = next.revision + 1;
         next.dialogueEnabled = message.enabled; break;
+      case "DIALOGUE_TOGGLE":
+        next.dialogueEnabled = !next.dialogueEnabled;
+        if (next.dialogueEnabled) next.dialogueRun = next.revision + 1;
+        break;
+      case "DIALOGUE_NUDGE":
+        if (message.direction !== 1 && message.direction !== -1) throw new Error("Invalid filter mix adjustment");
+        next.dialogueMix = Math.max(0, Math.min(100, next.dialogueMix + message.direction * MIX_STEP));
+        break;
       case "DIALOGUE_MIX":
         if (!Number.isInteger(message.mix) || message.mix < 0 || message.mix > 100) throw new Error("Filter mix must be 0–100");
         next.dialogueMix = message.mix; break;
@@ -41,5 +50,5 @@
     next.revision++;
     return next;
   }
-  globalThis.VideoAudioUtils = Object.freeze({ MAX_DELAY_MS, STEP_MS, delay, normalize, transition });
+  globalThis.VideoAudioUtils = Object.freeze({ MAX_DELAY_MS, STEP_MS, MIX_STEP, delay, normalize, transition });
 })();

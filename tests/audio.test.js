@@ -111,15 +111,15 @@ test("audio popup uses exact input, fixed step, tab-local status and failure-saf
   assert.equal(h.audioSessions.get(1).delayMs, 651);
   e.audioEnabled.dispatch("click");
   await settle();
-  assert.match(e.audioStatus.textContent, /On.*651 ms/);
+  assert.equal(e.audioEnabled.textContent, "On");
   e.audioExact.value = "12.5";
   e.audioExact.dispatch("change");
-  assert.match(e.audioError.textContent, /whole number/);
+  assert.equal(e.audioExact.value, "651", "invalid input quietly restores selected delay");
   h.failSessions = true;
   e.audioDecrease.dispatch("click");
   await settle();
   assert.equal(h.audioSessions.get(1).delayMs, 651);
-  assert.match(e.audioError.textContent, /Couldn't change this setting/);
+  assert.equal(e.audioExact.value, "651", "failed write preserves selected delay");
   h.failSessions = false;
   e.audioReset.dispatch("click");
   await settle();
@@ -130,80 +130,29 @@ test("audio popup uses exact input, fixed step, tab-local status and failure-saf
   assert.equal(e.audioToggleKeyButton.textContent, "Not set");
 });
 
-test("popup keeps routine unavailability quiet while preserving audio coverage and recovery feedback", async () => {
-  const h = createHarness();
-  h.createFrame(1);
-  const { elements: e, pollAudio } = h.createPopup(1);
-  await settle();
-  assert.equal(e.availability.hidden, true);
-  assert.equal(e.availabilityText.textContent, "");
-  assert.equal(e.audioStatus.textContent, "");
-  assert.equal(e.dialogueStatus.textContent, "");
-  const report = async fields => {
-    h.audioReports.set(1, fields);
-    await pollAudio();
-    await settle();
-  };
-  await report({ unavailable: true, eligible: 0 });
-  assert.equal(e.audioStatus.textContent, "");
-  assert.equal(e.dialogueStatus.textContent, "");
-  assert.doesNotMatch(e.audioStatus.textContent, /Native audio untouched/);
-  assert.equal(e.availability.hidden, true);
-  assert.equal(e.availabilityText.textContent, "");
-  await report({ contextState: "running", connected: 1 });
-  assert.match(e.audioStatus.textContent, /^$/);
-  await report({ eligible: 0, media: 0 });
-  assert.equal(e.audioStatus.textContent, "");
-  assert.equal(e.dialogueStatus.textContent, "");
-  assert.equal(e.audioEnabled.disabled, true);
-  await report({ unsupported: 1 });
-  assert.equal(e.audioStatus.textContent, "", "Off state does not report routine routing details");
-  e.audioEnabled.dispatch("click");
-  await settle();
-  assert.match(e.audioStatus.textContent, /^Limited support/);
-  assert.equal(e.audioEnabled.attributes["aria-checked"], "true");
-  await report({ contextState: "suspended" });
-  assert.match(e.audioStatus.textContent, /Click the page/);
-  await report({ applying: true, error: "Audio path failed" });
-  assert.match(e.audioStatus.textContent, /Audio Sync unavailable/);
-  assert.match(e.audioError.textContent, /reload the page/);
-  assert.doesNotMatch(e.audioError.textContent, /Audio path failed/);
-  assert.equal(e.audioEnabled.attributes["aria-checked"], "true", "switch is requested state, not a success indicator");
-});
-
-test("audio failure feedback is actionable, hides raw errors and clears only after recovery", async () => {
-  const h = createHarness();
-  h.createFrame(1);
-  const originalRequest = h.request;
-  let failPoll = false;
-  let failWrite = false;
-  h.request = (message, sender) => {
-    if ((failPoll && message.type === "AUDIO_SYNC_STATUS_GET") || (failWrite && message.type === "AUDIO_SYNC_ENABLE")) {
-      return Promise.reject(new Error("Internal storage/bridge failure: implementation details"));
-    }
-    return originalRequest(message, sender);
-  };
-  const { elements: e, pollAudio } = h.createPopup(1);
-  await settle();
+test("audio polling/write failures stay quiet and preserve selection until recovery", async () => {
+  const h = createHarness(); h.createFrame(1);
+  const original = h.request;
+  let failPoll = false, failWrite = false;
+  h.request = (m, sender) => (failPoll && m.type === "AUDIO_SYNC_STATUS_GET") || (failWrite && m.type === "AUDIO_SYNC_ENABLE")
+    ? Promise.reject(new Error("Internal storage/bridge details")) : original(m, sender);
+  const { elements:e, pollAudio } = h.createPopup(1); await settle();
+  failPoll = true; await pollAudio(); await settle();
+  assert.equal(e.audioEnabled.textContent, "Off");
+  assert.equal(e.audioEnabled.disabled, false);
+  failWrite = true; e.audioEnabled.dispatch("click"); await settle();
+  assert.equal(e.audioEnabled.textContent, "Off");
+  failPoll = false; await pollAudio(); await settle();
+  assert.equal(e.audioEnabled.textContent, "Off", "poll recovery does not invent successful write");
+  failWrite = false; e.audioEnabled.dispatch("click"); await settle();
+  assert.equal(e.audioEnabled.textContent, "On");
+  assert.equal(e.audioStatus, undefined); assert.equal(e.audioError, undefined);
   failPoll = true;
-  await pollAudio();
-  await settle();
-  assert.match(e.audioError.textContent, /Close and reopen Playback Plus/);
-  assert.doesNotMatch(e.audioError.textContent, /Internal|storage|bridge/);
-  failWrite = true;
-  e.audioEnabled.dispatch("click");
-  await settle();
-  assert.match(e.audioError.textContent, /Couldn't change this setting/);
-  failPoll = false;
-  await pollAudio();
-  await settle();
-  assert.match(e.audioError.textContent, /Couldn't change this setting/, "status recovery does not hide a failed change");
-  failWrite = false;
-  e.audioEnabled.dispatch("click");
-  await settle();
-  assert.equal(e.audioError.textContent, "");
-  assert.equal(e.audioStatus.textContent, "On · 0 ms.");
-  assert.doesNotMatch(e.audioStatus.textContent, /connected|routed|native|frame/);
+  const cold = h.createPopup(2); await settle();
+  assert.equal(cold.elements.audioEnabled.disabled, true);
+  assert.equal(cold.elements.dialogueMix.disabled, true);
+  failPoll = false; await cold.pollAudio(); await settle();
+  assert.equal(cold.elements.dialogueMix.disabled, false);
 });
 
 function engineHarness({ moduleFails = false, dialogueFails = false } = {}) {

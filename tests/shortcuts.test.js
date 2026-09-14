@@ -221,7 +221,7 @@ test("the shortcut instruction is immutable through capture, invalid keys, cance
     set() { throw new Error("The instruction must never be rewritten"); }
   });
   e.configButton.dispatch("click");
-  const ids = ["toggleKeyButton", "increaseKeyButton", "decreaseKeyButton", "audioToggleKeyButton", "audioIncreaseKeyButton", "audioDecreaseKeyButton"];
+  const ids = ["toggleKeyButton", "increaseKeyButton", "decreaseKeyButton", "audioToggleKeyButton", "audioIncreaseKeyButton", "audioDecreaseKeyButton", "dialogueToggleKeyButton", "dialogueIncreaseKeyButton", "dialogueDecreaseKeyButton"];
   const original = Object.fromEntries(ids.map(id => [id, e[id].textContent]));
   for (const id of ids) {
     e[id].dispatch("click");

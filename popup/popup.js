@@ -47,9 +47,11 @@
 
   const { ACTIONS, assignHotkey, formatHotkey, hasUnsupportedModifiers, observeHotkeys } = globalThis.VideoSpeedShortcuts;
   const keyButtons = { toggle: elements.toggleKeyButton, increase: elements.increaseKeyButton, decrease: elements.decreaseKeyButton,
-    audioToggle: document.querySelector("#audioToggleKeyButton"), audioIncrease: document.querySelector("#audioIncreaseKeyButton"), audioDecrease: document.querySelector("#audioDecreaseKeyButton") };
+    audioToggle: document.querySelector("#audioToggleKeyButton"), audioIncrease: document.querySelector("#audioIncreaseKeyButton"), audioDecrease: document.querySelector("#audioDecreaseKeyButton"),
+    dialogueToggle: document.querySelector("#dialogueToggleKeyButton"), dialogueIncrease: document.querySelector("#dialogueIncreaseKeyButton"), dialogueDecrease: document.querySelector("#dialogueDecreaseKeyButton") };
   const actionLabels = { toggle: "Quick toggle", increase: "Increase speed", decrease: "Decrease speed",
-    audioToggle: "Toggle audio correction", audioIncrease: "Increase audio delay", audioDecrease: "Decrease audio delay" };
+    audioToggle: "Toggle audio correction", audioIncrease: "Increase audio delay", audioDecrease: "Decrease audio delay",
+    dialogueToggle: "Toggle Voice Clarity", dialogueIncrease: "Increase filter mix", dialogueDecrease: "Decrease filter mix" };
   let hotkeys = Object.fromEntries(ACTIONS.map(action => [action, null]));
   let capturingAction = null;
   let savingKey = false;

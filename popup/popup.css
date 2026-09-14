@@ -82,7 +82,7 @@ h1, h2, h3, p { margin: 0; }
 .config-button small { color: var(--accent); font-size: 9px; }
 .config-button:hover:not(:disabled), .config-button:active:not(:disabled) { background: transparent; box-shadow: none; transform: none; }
 
-.config-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.config-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .config-heading h2 { font-size: 15px; font-weight: 500; }
 .config-heading .navigation-button { flex: 0 0 auto; padding: 7px 8px; font-size: 11px; }
 .audio-switch { position: relative; flex: 0 0 auto; margin-left: auto; min-width: 75px; min-height: 32px; padding: 6px 6px 6px 43px; border: 1px solid transparent; border-top-color: var(--line); border-radius: 0; background: transparent; color: var(--text); font: 11px/1.4 var(--mono); text-transform: uppercase; }
@@ -97,8 +97,7 @@ h1, h2, h3, p { margin: 0; }
 .help-details summary { padding: 12px 2px; color: var(--text); cursor: pointer; }
 .help-details summary:hover { color: var(--accent); }
 .help-details p { margin: 0 0 12px; }
-.audio-error { color: var(--danger); font: 12px/1.5 Arial, sans-serif; overflow-wrap: anywhere; }
-.audio-error:empty, .notice:empty { display: none; }
+.notice:empty { display: none; }
 .notice { margin-bottom: 12px; color: var(--danger); font: 11px/1.5 Arial, sans-serif; overflow-wrap: anywhere; }
 
 /* Unified U3a: one playback section above two independently controlled channels.
@@ -124,10 +123,6 @@ h1, h2, h3, p { margin: 0; }
 .mix-caption { margin-bottom: 22px; }
 .mix-caption output { display: block; height: 39px; color: var(--accent); font: 29px/39px var(--mono); letter-spacing: -.6px; }
 .voice-channel .range-limits { font-size: 9px; }
-.channel-status, .audio-error { margin-top: 10px; font: 11px/1.45 Arial, sans-serif; overflow-wrap: anywhere; }
-.channel-status { color: var(--muted); }
-.channel-status:empty, .audio-error:empty { margin: 0; }
-.channel-status:empty { display: none; }
 /* Non-modal, text-only help: reachable by hover, focus or click, never a no-media overlay. */
 .info-button { flex: 0 0 25px; display: grid; place-items: center; width: 25px; height: 30px; padding: 0; border: 0; background: transparent; color: var(--accent); }
 .info-button span { display: grid; place-items: center; width: 17px; height: 17px; border: 1px solid #7e9bbd; border-radius: 50%; background: #242c36; font: 600 11px/1 Georgia, serif; }
@@ -144,13 +139,13 @@ h1, h2, h3, p { margin: 0; }
 }
 
 /* Shortcut patch panel: shared bindings, no boxed rows or concealed capture states. */
-.hotkey-group-label { margin: 10px 0 4px; font-size: 10.5px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); }
-.hotkey-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 3px 0; border-bottom: 1px solid var(--line); }
+.hotkey-group-label { margin: 12px 0 4px; font-size: 10.5px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); }
+.hotkey-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 1px 0; border-bottom: 1px solid var(--line); }
 .toggle-copy { min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 3px 8px; }
 .toggle-copy h2 { font-size: 12px; font-weight: 500; }
 .toggle-copy p { font: 11px/1.4 Arial, sans-serif; color: var(--muted); }
 .toggle-copy strong { color: var(--accent); font-weight: normal; }
-#hotkeyHint { margin: 0 0 8px; }
+#hotkeyHint { margin: 0 0 8px; font-size: 11px; }
 .hotkey-feedback { margin: 10px 0; color: var(--danger); font: 12px/1.5 Arial, sans-serif; overflow-wrap: anywhere; }
 /* Keep the live region rendered before a warning arrives, without reserving a blank gap. */
 .hotkey-feedback:empty { margin: 0; }
