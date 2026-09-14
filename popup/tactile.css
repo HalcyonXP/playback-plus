@@ -1,4 +1,4 @@
-/* GB1 — Charcoal / Ice blue, on the Outlined Graphite B2b layout.
+/* GB1 — Charcoal / Ice blue, on the Outlined Graphite unified U3a layout.
    popup.css owns geometry. Button rows share the Audio/Dialogue surface;
    read-only text never receives a button face. Slider caps stay tactile. */
 @media (forced-colors: none) {
@@ -29,40 +29,39 @@
   }
 
   .app * { text-shadow: var(--label-shadow); }
-  .app .speed-value, .app .audio-value, .app .dialogue-value { text-shadow: var(--readout-shadow); }
+  .app .speed-value { text-shadow: var(--readout-shadow); }
   .app { border-color: var(--frame-edge); background: var(--panel-face); box-shadow: inset 0 1px var(--highlight), inset 0 -2px var(--lowlight); }
   .screw { background: radial-gradient(circle at 35% 25%, var(--line), var(--cap-mid) 50%, var(--track-edge) 75%); box-shadow: 0 1px 1px #0003, 0 -1px var(--highlight); }
   .screw::after { background: var(--track-edge); box-shadow: 0 1px var(--line); }
   .default-readout { border-color: var(--soft-rule); background: transparent; box-shadow: none; }
 
   /* One shared, square-edged action surface on every page. */
-  .step-button, .navigation-button, .presets button, .audio-switch, .audio-entry {
+  .step-button, .navigation-button, .presets button, .audio-switch {
     border-top-color: var(--line); background: var(--row-face); box-shadow: var(--row-shadow);
   }
   .step-button, .navigation-button:not(.config-button) { font-weight: 700; }
   .navigation-button.save-default { color: var(--accent); font-weight: 600; border: 0; border-top: 1px solid var(--line); }
   .presets button:not(:last-child), #audioDecrease { border-right-color: var(--soft-rule); }
   .step-button:hover:not(:disabled), .navigation-button:hover:not(:disabled),
-  .presets button:hover:not(:disabled), .audio-switch:hover:not(:disabled), .audio-entry:hover {
+  .presets button:hover:not(:disabled), .audio-switch:hover:not(:disabled) {
     background: var(--hover-face); color: var(--accent); filter: none;
     box-shadow: var(--row-shadow);
   }
   .step-button:active:not(:disabled), .navigation-button:active:not(:disabled),
-  .presets button:active:not(:disabled), .audio-switch:active:not(:disabled), .audio-entry:active {
+  .presets button:active:not(:disabled), .audio-switch:active:not(:disabled) {
     background: var(--pressed-face); box-shadow: var(--row-pressed); transform: none;
   }
   .presets button[aria-pressed="true"] {
     color: var(--accent); border-top-color: var(--accent); background: var(--selected-face);
     box-shadow: inset 0 1px var(--soft-accent), inset 0 -2px var(--accent), 0 2px 3px #0002;
   }
-  .audio-entry:hover { color: var(--text); }
 
   /* Switches remain switches, with a distinct track/thumb and ice-blue On state. */
   .audio-switch::before { background: var(--track); border-color: var(--track-edge) var(--line) var(--line) var(--track-edge); box-shadow: inset 0 2px 3px #0005; }
   .audio-switch::after { background: var(--cap-face); border-color: var(--cap-border); box-shadow: inset 0 1px var(--highlight), 0 1px 2px #0004; }
   .audio-switch[aria-checked="true"] { color: var(--accent); border-top-color: var(--accent); border-right-color: transparent; border-bottom-color: transparent; border-left-color: transparent; }
   .audio-switch[aria-checked="true"]::after { background: var(--accent); border-color: var(--accent); }
-  .audio-exact input { background: var(--track); border-color: var(--track-edge) var(--line) var(--line) var(--track-edge); box-shadow: inset 0 2px 4px #0003, 0 1px var(--highlight); }
+  .number-well { background: var(--track); border-color: var(--track-edge) var(--line) var(--line) var(--track-edge); box-shadow: inset 0 2px 4px #0003, 0 1px var(--highlight); }
 
   .safety-note { color: var(--warning); border-left-color: var(--warning); }
 

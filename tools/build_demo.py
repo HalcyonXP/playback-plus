@@ -16,6 +16,7 @@ ASSETS = {
     "tactile.css": "popup/tactile.css",
     "popup.js": "popup/popup.js",
     "audio.js": "popup/audio.js",
+    "help.js": "popup/help.js",
     "speed.js": "shared/speed.js",
     "shortcuts.js": "shared/shortcuts.js",
     "shared-audio.js": "shared/audio.js",
@@ -37,7 +38,7 @@ def build(output):
     html = source_bytes("popup/popup.html").decode("utf-8")
     replacements = {
         "popup.css": "assets/popup.css", "tactile.css": "assets/tactile.css",
-        "popup.js": "assets/popup.js", "audio.js": "assets/audio.js",
+        "popup.js": "assets/popup.js", "audio.js": "assets/audio.js", "help.js": "assets/help.js",
         "../shared/speed.js": "assets/speed.js", "../shared/shortcuts.js": "assets/shortcuts.js",
         "../shared/audio.js": "assets/shared-audio.js",
     }

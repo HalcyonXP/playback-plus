@@ -3,6 +3,7 @@
 !/.gitattributes
 !/.gitignore
 !/README.md
+!/LICENSE
 !/manifest.json
 !/package.json
 !/background/

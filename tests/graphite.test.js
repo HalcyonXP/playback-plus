@@ -13,7 +13,7 @@ test("GB1 Graphite markup preserves accessible control names without retired bra
   assert.match(html, /id="speedRange"[^>]+aria-label="Playback speed"/);
   assert.match(html, /id="dialogueMix"[^>]+aria-label="Filter mix"/);
   assert.match(html, /<label for="audioExact">Exact delay<\/label>/);
-  assert.match(html, /aria-label="Selected audio delay"/);
+  assert.match(html, /aria-label="Exact audio delay in milliseconds"/);
   assert.doesNotMatch(html, /class="brand"|class="logo"|class="eyebrow"|defaultKind|defaultHint|current-speed-label/);
   assert.doesNotMatch(html, /Moves sound later, never earlier\.|Save Default/);
   assert.match(html, /id="defaultLabel">Default for new tabs<\/span>/);
@@ -21,7 +21,7 @@ test("GB1 Graphite markup preserves accessible control names without retired bra
   assert.match(save, /aria-label="Save current playback speed as default for new tabs"/);
   assert.doesNotMatch(save, /role="switch"|aria-checked|aria-pressed/);
   assert.ok(html.indexOf('class="presets"') < html.indexOf('class="default-control"'));
-  assert.ok(html.indexOf('class="default-control"') < html.indexOf('id="audioButton"'));
+  assert.ok(html.indexOf('class="default-control"') < html.indexOf('id="audioControls"'));
   const readout = html.match(/<div id="defaultReadout"[^>]*>/)[0];
   assert.doesNotMatch(readout, /tabindex|role="button"/);
   assert.match(readout, /aria-live="polite" aria-atomic="true"/);
@@ -64,9 +64,9 @@ test("GB1 production tokens match the selected study without importing its previ
 
 test("Voice Clarity is customer-facing wording only; dialogue identifiers and protocol remain stable", () => {
   const html = readSource("popup/popup.html");
-  assert.match(html, /id="dialogueButton"[^>]*>[\s\S]*?<strong>Voice Clarity<\/strong>/);
+  assert.match(html, /id="dialogueControls"[^>]*aria-labelledby="dialogueHeading"/);
   assert.match(html, /id="dialogueHeading">Voice Clarity<\/h2>/);
-  assert.match(html, /id="dialogueEnabled"[^>]*aria-label="Voice Clarity"/);
+  assert.match(html.match(/<button[^>]*id="dialogueEnabled"[^>]*>/)[0], /aria-label="Voice Clarity"/);
   assert.match(html, /small delay added by Voice Clarity/);
   for (const name of ["popup/popup.html", "popup/audio.js", "content/audio-engine.js", "content/dialogue-processor.js", "content/vendor/rnnoise/PROVENANCE.md", "demo/index.html"]) {
     assert.doesNotMatch(readSource(name), /dialogue focus/i, name);

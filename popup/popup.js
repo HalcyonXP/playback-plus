@@ -32,9 +32,7 @@
     mainView: document.querySelector("#mainView"),
     configView: document.querySelector("#configView"),
     configButton: document.querySelector("#configButton"),
-    backButton: document.querySelector("#backButton"),
-    audioView: document.querySelector("#audioView"),
-    dialogueView: document.querySelector("#dialogueView")
+    backButton: document.querySelector("#backButton")
   };
 
   const initialSpeedState = createSpeedState(DEFAULT_SPEED, DEFAULT_SPEED);
@@ -89,8 +87,6 @@
   function showConfiguration(show) {
     capturingAction = null;
     clearKeyFeedback("validation");
-    elements.audioView.hidden = true;
-    elements.dialogueView.hidden = true;
     elements.mainView.hidden = show;
     elements.configView.hidden = !show;
     renderHotkeys();

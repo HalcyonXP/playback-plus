@@ -117,15 +117,15 @@ await (async () => {
   check(ad.querySelector('#availability').hidden && ad.querySelector('#availabilityText').textContent === ''
     && !ad.querySelector('.logo') && ad.querySelector('#saveDefault').getClientRects().length,
     'popup omits branding and keeps the default widget on playback with quiet status');
-  ad.querySelector('#audioButton').click();
-  check(!ad.querySelector('#saveDefault').getClientRects().length, 'audio page excludes the playback-only default row');
+  check(ad.querySelector('#saveDefault').getClientRects().length && ad.querySelector('#audioExact').getClientRects().length
+    && ad.querySelector('#dialogueMix').getClientRects().length, 'speed, saved default and both audio channels share one page');
   const audioHelp = ad.querySelector('#audioDetails');
-  check(!audioHelp.open && !ad.querySelector('#audioSafety').closest('details')
-    && ad.querySelector('#audioEnabled').getAttribute('aria-label') === 'Audio sync', 'audio switch is named and recovery warning stays outside collapsed help');
-  audioHelp.querySelector('summary').click();
-  check(audioHelp.open && ad.documentElement.scrollWidth <= 360, 'expanded audio help fits the popup width');
-  audioHelp.querySelector('summary').click();
-  check(ad.querySelector('#mainView').hidden && !ad.querySelector('#audioView').hidden, 'real audio detail view replaces main view');
+  check(audioHelp.hidden && ad.querySelector('#audioSafety').closest('.info-panel')
+    && ad.querySelector('#audioEnabled').getAttribute('aria-label') === 'Audio Sync', 'audio switch is named and recovery guidance belongs to themed info');
+  ad.querySelector('#audioInfo').click();
+  check(!audioHelp.hidden && ad.documentElement.scrollWidth <= 360, 'audio info opens within popup width');
+  ad.querySelector('#audioInfo').click();
+  check(!ad.querySelector('#mainView').hidden && audioHelp.hidden, 'closing info keeps all controls on the playback page');
   const exact = ad.querySelector('#audioExact');
   exact.value = '153';
   exact.dispatchEvent(new ap.contentWindow.Event('change', { bubbles: true }));
@@ -133,11 +133,10 @@ await (async () => {
   ad.querySelector('#audioIncrease').click();
   await waitFor(async () => { if ((await audioState()).delayMs !== 653) throw new Error('Step write pending'); });
   check(ad.documentElement.scrollWidth <= 360, 'audio view fits 360px without horizontal scrolling');
-  ad.querySelector('#audioBackButton').click();
   ad.querySelector('#configButton').click();
   check(ad.querySelector('#audioToggleKeyButton').textContent === 'Not set', 'new audio shortcuts start unassigned');
   check(ad.querySelector('#hotkeyHint').textContent === 'Choose a shortcut. Press a key. Escape clears it.'
-    && !ad.querySelector('.shortcut-scope') && ad.querySelector('.audio-config-label').textContent === 'Audio sync', 'configuration has a fixed instruction above compact shared key bindings');
+    && !ad.querySelector('.shortcut-scope') && ad.querySelector('.audio-config-label').textContent === 'Audio Sync', 'configuration has a fixed instruction above compact shared key bindings');
   ad.querySelector('#audioToggleKeyButton').click();
   for (const type of ['keydown', 'keyup']) ad.dispatchEvent(new ap.contentWindow.KeyboardEvent(type, { code: 'KeyJ', bubbles: true, cancelable: true }));
   await waitFor(async () => { if ((await browser.storage.sync.get('hotkeys')).hotkeys.audioToggle !== 'KeyJ') throw new Error('Audio binding pending'); });

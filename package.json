@@ -1,11 +1,12 @@
 {
   "name": "playback-plus-firefox-extension",
-  "version": "1.8.1",
+  "version": "1.9.0",
+  "license": "MIT",
   "private": true,
   "description": "Development and validation scripts for the persistent Playback Plus Firefox extension.",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check shared/shortcuts.js && node --check shared/speed.js && node --check shared/audio.js && node --check background/audio.js && node --check background/background.js && node --check content/content.js && node --check content/audio-engine.js && node --check content/audio-processor.js && node --check content/audio-bridge.js && node --check popup/popup.js && node --check popup/audio.js && node --check content/dialogue-core.js && node --input-type=module --check < content/dialogue-processor.js && node --input-type=module --check < content/vendor/rnnoise/rnnoise-sync.js && node --test tests/*.test.js",
+    "check": "node --check shared/shortcuts.js && node --check shared/speed.js && node --check shared/audio.js && node --check background/audio.js && node --check background/background.js && node --check content/content.js && node --check content/audio-engine.js && node --check content/audio-processor.js && node --check content/audio-bridge.js && node --check popup/popup.js && node --check popup/audio.js && node --check popup/help.js && node --check content/dialogue-core.js && node --input-type=module --check < content/dialogue-processor.js && node --input-type=module --check < content/vendor/rnnoise/rnnoise-sync.js && node --test tests/*.test.js",
     "package": "python tools/package_extension.py"
   }
 }

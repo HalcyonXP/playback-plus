@@ -91,7 +91,7 @@ test("audio-key feedback shows the selection, not engine diagnostics or raw writ
   await settle();
   context.VideoAudioBridge.act("audioIncrease");
   await settle();
-  assert.equal(notice.textContent, "Audio sync · 500 ms selected · Off");
+  assert.equal(notice.textContent, "Audio Sync · 500 ms selected · Off");
   engineFails = true;
   context.VideoAudioBridge.act("audioIncrease");
   await settle();
@@ -100,5 +100,5 @@ test("audio-key feedback shows the selection, not engine diagnostics or raw writ
   writeFails = true;
   context.VideoAudioBridge.act("audioIncrease");
   await settle();
-  assert.equal(notice.textContent, "Couldn't change Audio sync. Please try again.");
+  assert.equal(notice.textContent, "Couldn't change Audio Sync. Please try again.");
 });

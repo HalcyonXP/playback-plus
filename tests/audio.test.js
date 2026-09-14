@@ -96,12 +96,11 @@ test("audio key defaults are unset, duplicate speed keys rejected, bound actions
 test("audio popup uses exact input, fixed step, tab-local status and failure-safe saves", async () => {
   const h = createHarness();
   h.createFrame(1);
-  const { elements: e } = h.createPopup(1);
+  const { elements: e, pollAudio } = h.createPopup(1);
   assert.equal(e.audioExact.disabled, true);
   await settle();
-  e.audioButton.dispatch("click");
-  assert.equal(e.mainView.hidden, true);
-  assert.equal(e.audioView.hidden, false);
+  await pollAudio();
+  assert.equal(e.mainView.hidden, false);
   e.audioExact.value = "151";
   e.audioExact.dispatch("change");
   await settle();
@@ -112,7 +111,7 @@ test("audio popup uses exact input, fixed step, tab-local status and failure-saf
   assert.equal(h.audioSessions.get(1).delayMs, 651);
   e.audioEnabled.dispatch("click");
   await settle();
-  assert.match(e.audioSummary.textContent, /On.*651 ms/);
+  assert.match(e.audioStatus.textContent, /On.*651 ms/);
   e.audioExact.value = "12.5";
   e.audioExact.dispatch("change");
   assert.match(e.audioError.textContent, /whole number/);
@@ -126,9 +125,7 @@ test("audio popup uses exact input, fixed step, tab-local status and failure-saf
   await settle();
   assert.equal(h.audioSessions.get(1).delayMs, 0);
   assert.equal(h.audioSessions.get(1).enabled, true);
-  e.audioBackButton.dispatch("click");
   assert.equal(e.mainView.hidden, false);
-  assert.equal(e.audioView.hidden, true);
   e.configButton.dispatch("click");
   assert.equal(e.audioToggleKeyButton.textContent, "Not set");
 });
@@ -136,20 +133,18 @@ test("audio popup uses exact input, fixed step, tab-local status and failure-saf
 test("popup keeps routine unavailability quiet while preserving audio coverage and recovery feedback", async () => {
   const h = createHarness();
   h.createFrame(1);
-  const { elements: e } = h.createPopup(1);
+  const { elements: e, pollAudio } = h.createPopup(1);
   await settle();
   assert.equal(e.availability.hidden, true);
   assert.equal(e.availabilityText.textContent, "");
-  assert.equal(e.audioSummary.textContent, "Off · 0 ms selected");
   assert.equal(e.audioStatus.textContent, "");
-  assert.equal(e.dialogueSummary.textContent, "Off");
+  assert.equal(e.dialogueStatus.textContent, "");
   const report = async fields => {
     h.audioReports.set(1, fields);
-    e.audioButton.dispatch("click");
+    await pollAudio();
     await settle();
   };
   await report({ unavailable: true, eligible: 0 });
-  assert.equal(e.audioSummary.textContent, "Off · 0 ms selected");
   assert.equal(e.audioStatus.textContent, "");
   assert.equal(e.dialogueStatus.textContent, "");
   assert.doesNotMatch(e.audioStatus.textContent, /Native audio untouched/);
@@ -165,12 +160,12 @@ test("popup keeps routine unavailability quiet while preserving audio coverage a
   assert.equal(e.audioStatus.textContent, "", "Off state does not report routine routing details");
   e.audioEnabled.dispatch("click");
   await settle();
-  assert.match(e.audioSummary.textContent, /^Limited support/);
+  assert.match(e.audioStatus.textContent, /^Limited support/);
   assert.equal(e.audioEnabled.attributes["aria-checked"], "true");
   await report({ contextState: "suspended" });
   assert.match(e.audioStatus.textContent, /Click the page/);
   await report({ applying: true, error: "Audio path failed" });
-  assert.match(e.audioSummary.textContent, /Audio sync unavailable/);
+  assert.match(e.audioStatus.textContent, /Audio Sync unavailable/);
   assert.match(e.audioError.textContent, /reload the page/);
   assert.doesNotMatch(e.audioError.textContent, /Audio path failed/);
   assert.equal(e.audioEnabled.attributes["aria-checked"], "true", "switch is requested state, not a success indicator");
@@ -188,10 +183,10 @@ test("audio failure feedback is actionable, hides raw errors and clears only aft
     }
     return originalRequest(message, sender);
   };
-  const { elements: e } = h.createPopup(1);
+  const { elements: e, pollAudio } = h.createPopup(1);
   await settle();
   failPoll = true;
-  e.audioButton.dispatch("click");
+  await pollAudio();
   await settle();
   assert.match(e.audioError.textContent, /Close and reopen Playback Plus/);
   assert.doesNotMatch(e.audioError.textContent, /Internal|storage|bridge/);
@@ -200,14 +195,14 @@ test("audio failure feedback is actionable, hides raw errors and clears only aft
   await settle();
   assert.match(e.audioError.textContent, /Couldn't change this setting/);
   failPoll = false;
-  e.audioButton.dispatch("click");
+  await pollAudio();
   await settle();
   assert.match(e.audioError.textContent, /Couldn't change this setting/, "status recovery does not hide a failed change");
   failWrite = false;
   e.audioEnabled.dispatch("click");
   await settle();
   assert.equal(e.audioError.textContent, "");
-  assert.equal(e.audioSummary.textContent, "On · 0 ms");
+  assert.equal(e.audioStatus.textContent, "On · 0 ms.");
   assert.doesNotMatch(e.audioStatus.textContent, /connected|routed|native|frame/);
 });
 

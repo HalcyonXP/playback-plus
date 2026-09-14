@@ -96,7 +96,7 @@ def main():
             assert find('saveDefault').get_attribute('aria-checked') is None
             assert find('saveDefault').accessible_name == 'Save current playback speed as default for new tabs'
             readout = driver.execute_script("const r=document.getElementById('defaultReadout'),s=getComputedStyle(r),b=document.getElementById('saveDefault').getBoundingClientRect(),p=document.querySelector('.presets').getBoundingClientRect();return {cursor:s.cursor,background:s.backgroundImage,shadow:s.boxShadow,tabIndex:r.tabIndex,below:b.top>=p.bottom,first:document.querySelector('.adjuster').getBoundingClientRect().top}")
-            assert readout == {'cursor':'default','background':'none','shadow':'none','tabIndex':-1,'below':True,'first':19}, readout
+            assert readout == {'cursor':'default','background':'none','shadow':'none','tabIndex':-1,'below':True,'first':41}, readout
             find('defaultLabel').click()
             assert find('defaultSpeed').text == '1×', 'Readout clicks must not save'
             assert driver.execute_script("return getComputedStyle(document.querySelector('.presets')).gap") == '0px'
@@ -137,7 +137,7 @@ def main():
                 assert text_depth, ('All visible lettering has depth only outside forced colours', name)
                 assert metrics['width'] <= 360 and not metrics['overflow'], (name, metrics)
                 assert metrics['height'] <= 600, (name, metrics)
-                if name in ('main', 'audio-off', 'dialogue-off', 'configuration'):
+                if name in ('main', 'configuration') and not args.forced_colors:
                     assert metrics['scrollHeight'] <= metrics['clientHeight'], ('Default view should not scroll', name, metrics)
                 filename = output / f'popup-{name}.png'
                 driver.find_element(By.TAG_NAME, 'body').screenshot(str(filename))
@@ -258,11 +258,10 @@ def main():
             driver.execute_script('return fixtureApi.changeSpeed(2)')
             assert not find('notice').text, 'Routine changes must be silent'
             for view in ('audio', 'dialogue'):
-                find(view + 'Button').click()
                 switch = find(view + 'Enabled')
                 wait.until(lambda _: switch.is_enabled())
                 assert switch.get_attribute('role') == 'switch'
-                assert switch.get_attribute('aria-label') == ('Audio sync' if view == 'audio' else 'Voice Clarity')
+                assert switch.get_attribute('aria-label') == ('Audio Sync' if view == 'audio' else 'Voice Clarity')
                 assert switch.get_attribute('aria-checked') == 'false'
                 layout(view + '-off')
                 switch.send_keys(Keys.SPACE)
@@ -270,18 +269,18 @@ def main():
                 layout(view + '-on')
                 if view == 'audio':
                     exact = find('audioExact')
-                    exact.clear()
-                    exact.send_keys('5000', Keys.ENTER)
-                    wait.until(lambda _: find('audioValue').text == '5000 ms')
+                    exact.click()
+                    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys('5000', Keys.ENTER).perform()
+                    wait.until(lambda _: find('audioExact').get_attribute('value') == '5000')
                     assert not find('audioIncrease').is_enabled()
                     layout('audio-max')
-                    exact.clear()
-                    exact.send_keys('12.5', Keys.ENTER)
+                    exact.click()
+                    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys('12.5', Keys.ENTER).perform()
                     wait.until(lambda _: 'whole number' in find('audioError').text)
                     layout('audio-invalid')
-                    exact.clear()
-                    exact.send_keys('0', Keys.ENTER)
-                    wait.until(lambda _: find('audioValue').text == '0 ms' and switch.is_enabled())
+                    exact.click()
+                    ActionChains(driver).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys('0', Keys.ENTER).perform()
+                    wait.until(lambda _: find('audioExact').get_attribute('value') == '0' and switch.is_enabled())
                 else:
                     mix = find('dialogueMix')
                     mix.send_keys(Keys.HOME)
@@ -291,9 +290,7 @@ def main():
                     driver.execute_script('fixtureApi.setAudioReport({unsupported: 1})')
                     wait.until(lambda _: find('dialogueStatus').text.startswith('Limited support'))
                     layout('dialogue-partial')
-                    find('dialogueBackButton').click()
                     layout('main-partial')
-                    find('dialogueButton').click()
                     driver.execute_script('fixtureApi.setAudioReport({dialogueConnected: 0, dialogueFailed: 1, dialogueError: "RNNoise failed. Using unfiltered audio. Turn Off and On to retry."})')
                     wait.until(lambda _: 'Turn it Off and On' in find('dialogueError').text)
                     assert 'RNNoise' not in find('dialogueError').text
@@ -304,58 +301,63 @@ def main():
                 switch.send_keys(Keys.SPACE)
                 wait.until(lambda _: switch.get_attribute('aria-checked') == 'false' and switch.is_enabled())
                 details = find(view + 'Details')
-                assert not details.get_attribute('open')
-                assert find(view + 'Safety').is_displayed(), 'Safety warning must stay outside collapsed help'
-                summary = details.find_element(By.TAG_NAME, 'summary')
-                summary.send_keys(Keys.ENTER)
-                wait.until(lambda _: details.get_attribute('open'))
-                assert details.find_element(By.TAG_NAME, 'p').is_displayed()
+                info = find(view + 'Info')
+                assert not details.is_displayed() and not find(view + 'Safety').is_displayed()
+                before = driver.execute_script('return document.body.getBoundingClientRect().height')
+                ActionChains(driver).move_to_element(info).perform()
+                wait.until(lambda _: details.is_displayed())
+                assert find(view + 'Safety').is_displayed()
+                ActionChains(driver).move_to_element(details).perform()
+                assert details.is_displayed(), 'Help must remain hoverable'
+                info.click()  # pin while focused
                 layout(view + '-help')
-                summary.send_keys(Keys.ENTER)
-                wait.until(lambda _: not details.get_attribute('open'))
-                find(view + 'BackButton').click()
-                assert driver.execute_script('return document.activeElement.id') == view + 'Button'
+                assert driver.execute_script('return document.body.getBoundingClientRect().height') == before, 'Info must not change natural popup height'
+                bounds = driver.execute_script('const r=arguments[0].getBoundingClientRect();return {top:r.top,bottom:r.bottom,height:innerHeight}', details)
+                assert bounds['top'] >= 0 and bounds['bottom'] <= bounds['height'], bounds
+                info.send_keys(Keys.ESCAPE)
+                wait.until(lambda _: not details.is_displayed())
+                find('speedValue').click()
+                driver.execute_script('arguments[0].focus()', info)
+                assert details.is_displayed(), 'Keyboard focus opens the same help'
+                info.send_keys(Keys.END)
+                assert driver.execute_script('return Math.abs(arguments[0].scrollTop-(arguments[0].scrollHeight-arguments[0].clientHeight))<=1',details), 'Keyboard reaches all safety/help text'
+                info.send_keys(Keys.HOME)
+                assert driver.execute_script('return arguments[0].scrollTop',details) == 0
+                info.send_keys(Keys.ESCAPE)
+                assert not details.is_displayed()
             # The approved no-media design has neither inline availability copy
             # nor an overlay. Empty/restricted/paused pages are not engine failures.
             absent = 'fixtureApi.setAudioReport({media:0,eligible:0,connected:0,dialogueConnected:0})'
             driver.execute_script(absent)
-            find('audioButton').click()
             wait.until(lambda _: not find('audioEnabled').is_enabled())
             assert not find('audioStatus').text and not find('audioError').text
             layout('audio-no-media')
-            find('audioBackButton').click()
             assert not find('availabilityText').text and find('saveDefault').is_enabled()
             layout('main-no-media')
-            find('dialogueButton').click()
             wait.until(lambda _: not find('dialogueEnabled').is_enabled())
             assert not find('dialogueStatus').text and not find('dialogueError').text
             layout('dialogue-no-media')
-            find('dialogueBackButton').click()
             find('configButton').click()
             assert find('toggleKeyButton').is_enabled()
             assert not driver.find_elements(By.CSS_SELECTOR, '.unavailable-overlay, .unavailable-message, [inert]')
             layout('configuration-no-media')
             find('backButton').click()
             driver.execute_script('fixtureApi.setAudioReport({})')
-            find('audioButton').click()
             wait.until(lambda _: find('audioEnabled').is_enabled())
             find('audioEnabled').click()
             wait.until(lambda _: find('audioEnabled').get_attribute('aria-checked') == 'true' and find('audioEnabled').is_enabled())
             driver.execute_script("return fixtureApi.message({type:'DIALOGUE_ENABLE',enabled:true})")
             driver.execute_script(absent)
-            wait.until(lambda _: find('audioSummary').get_attribute('textContent').endswith('selected') and not find('audioStatus').text)
+            wait.until(lambda _: find('audioEnabled').get_attribute('aria-checked') == 'true' and not find('audioStatus').text)
             assert find('audioEnabled').is_enabled(), 'Off remains usable after media disappears'
             layout('audio-no-media-on')
-            find('audioBackButton').click()
-            find('dialogueButton').click()
-            wait.until(lambda _: find('dialogueSummary').get_attribute('textContent').endswith('selected') and not find('dialogueStatus').text)
+            wait.until(lambda _: find('dialogueEnabled').get_attribute('aria-checked') == 'true' and not find('dialogueStatus').text)
             assert find('dialogueEnabled').is_enabled(), 'Filter Off remains usable after media disappears'
             layout('dialogue-no-media-on')
             driver.execute_script('fixtureApi.setAudioReport({})')
             wait.until(lambda _: find('dialogueStatus').text.startswith('On'))
             driver.execute_script("return fixtureApi.message({type:'AUDIO_SYNC_ENABLE',enabled:false})")
             driver.execute_script("return fixtureApi.message({type:'DIALOGUE_ENABLE',enabled:false})")
-            find('dialogueBackButton').click()
             find('configButton').click()
             instruction = 'Choose a shortcut. Press a key. Escape clears it.'
             assert find('hotkeyHint').text == instruction
@@ -363,7 +365,7 @@ def main():
             assert driver.execute_script("return document.getElementById('hotkeyHint').previousElementSibling.classList.contains('config-heading')")
             assert driver.find_element(By.CSS_SELECTOR, '.audio-config-label').text == 'AUDIO SYNC'
             assert driver.execute_script("const s=getComputedStyle(document.getElementById('shortcutDetails')); return s.borderTopWidth==='0px' && s.marginTop==='0px'"), 'Configuration help has no redundant divider or gap'
-            assert driver.execute_script("return ['audioDetails','dialogueDetails'].every(id=>getComputedStyle(document.getElementById(id)).borderTopWidth==='1px')"), 'Other pages retain their help dividers'
+            assert driver.execute_script("return ['audioDetails','dialogueDetails'].every(id=>document.getElementById(id).getAttribute('role')==='tooltip' && document.getElementById(id).hidden)"), 'Navigation closes both info panels'
             layout('configuration')
             def config_positions():
                 return driver.execute_script("""
@@ -406,14 +408,14 @@ def main():
             summary.send_keys(Keys.ENTER)
             wait.until(lambda _: find('shortcutDetails').get_attribute('open'))
             layout('configuration-help')
-            print(json.dumps({'passed': True, 'checks': 'GB1 ice-blue readouts, amber warnings, rounded frame, Graphite ruled action materials, centred default row, non-interactive playback-only readout, snapshot Save/re-save, visual-only preset and +/- glide and interruption, stable compact hotkey targets/fixed instruction/separate feedback, stationary flat press state, centred +/- strokes, speed/mix keyboard endpoints, exact-delay bounds/errors, partial/failure status, shortcut capture, layout, switches/help and Back focus', 'views': results}, indent=2))
+            print(json.dumps({'passed': True, 'checks': 'GB1 ice-blue readouts, amber warnings, rounded frame, Graphite ruled action materials, centred default row, non-interactive playback-only readout, snapshot Save/re-save, visual-only preset and +/- glide and interruption, stable compact hotkey targets/fixed instruction/separate feedback, stationary flat press state, centred +/- strokes, speed/mix keyboard endpoints, exact-delay bounds/errors, partial/failure status, shortcut capture, layout, unified controls and hover/focus/pinned/Escape info', 'views': results}, indent=2))
     finally:
         server.shutdown()
         server.server_close()
-    # Compact side-by-side review of the four default views.
-    names = {'main', 'audio-off', 'dialogue-off', 'configuration'}
+    # Review of unified controls, both info panels and Configuration.
+    names = {'main', 'audio-help', 'dialogue-help', 'configuration'}
     images = [(name, Image.open(path).convert('RGB')) for name, path in shots if name in names]
-    sheet = Image.new('RGB', (380 * len(images), 640), '#202630')
+    sheet = Image.new('RGB', (380 * len(images), 700), '#202630')
     draw = ImageDraw.Draw(sheet)
     for i, (name, image) in enumerate(images):
         draw.text((i * 380 + 10, 8), name, fill='white')

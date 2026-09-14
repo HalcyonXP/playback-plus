@@ -8,7 +8,7 @@ This is a **fictional UI demonstration**, not an installable add-on. It previews
 
 - `index.html`, `gallery.css`, `gallery.js`: public gallery and acknowledgement-driven theme switching.
 - `theme.js`, `themes.css`, `palettes.json`: reviewed colour-study assets. The stylesheet is a deliberate design proposal layer, not a production popup import.
-- `../tools/build_demo.py`: explicit static export. Generates the preview from the runtime popup markup and copies only its two stylesheets, five UI/shared scripts and `tests/browser-init.js` as a fictional browser API. No audio engines, RNNoise, icons, packages or private files are deployed.
+- `../tools/build_demo.py`: explicit static export. Generates the preview from the runtime popup markup and copies only its two stylesheets, six UI/shared scripts and `tests/browser-init.js` as a fictional browser API. No audio engines, RNNoise, icons, packages or private files are deployed.
 
 ```sh
 python tools/build_demo.py
@@ -17,7 +17,7 @@ python -m http.server 8000 --directory .pi/pages-site
 
 Open `http://localhost:8000/demo/`. The server is for development only; GitHub Pages serves the published copy. Do not serve the repository root to share private working files. The builder rejects unexpected files in an existing output directory rather than deleting or uploading them.
 
-`npm run check` includes the static demo export tests. Test all nine palette buttons, page navigation, Save/re-save, On/Off, shortcut capture, keyboard activation and narrow-screen scrolling in actual browsers before changing the preview. Display fonts and native form controls can vary by OS/browser; a web demo does not validate native Firefox popup sizing or real audio behavior.
+`npm run check` includes the static demo export tests. Test all nine palette buttons, Configuration navigation, Save/re-save, On/Off, hover/focus/pinned info and keyboard help scrolling, shortcut capture, keyboard activation and narrow-screen scrolling in actual browsers before changing the preview. Display fonts and native form controls can vary by OS/browser; a web demo does not validate native Firefox popup sizing or real audio behavior.
 
 ## Publication
 

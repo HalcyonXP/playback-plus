@@ -5,7 +5,10 @@ including its embedded WebAssembly and default RNNoise model. It is loaded local
 only when Voice Clarity is enabled; no model/audio download or upload occurs at runtime.
 
 - Repository: https://github.com/jitsi/rnnoise-wasm
-- Pinned commit: `cb529a59a8478fe604e57986fc96afdaecfa6fb7`
+- Published npm release: [`@jitsi/rnnoise-wasm@0.2.1`](https://registry.npmjs.org/@jitsi/rnnoise-wasm/0.2.1).
+  Its `package/dist/rnnoise-sync.js` is byte-identical to the bundled module.
+  The npm wrapper version 0.2.1 is distinct from the RNNoise algorithm version 0.2.
+- Pinned commit (also the npm release's `gitHead`): `cb529a59a8478fe604e57986fc96afdaecfa6fb7`
 - Artifact: `dist/rnnoise-sync.js` (1,933,102 bytes)
 - SHA-256: `05a553f523d59502d133a6d05dbf1878137c9e7bcff06edf5561f7001b62f95f`
 - Retrieved via HTTPS on 2026-09-10. Upstream describes this synchronous build as

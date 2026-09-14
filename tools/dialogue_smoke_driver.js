@@ -1,15 +1,14 @@
 // Included inside the existing audio smoke's instrumented, silent fixture.
 await set(audio.id, 1);
 ad.querySelector('#backButton').click();
-ad.querySelector('#dialogueButton').click();
-check(!ad.querySelector('#dialogueView').hidden && ad.querySelector('#audioView').hidden && ad.querySelector('#mainView').hidden,
-  'Voice Clarity is a separate popup view');
+check(!ad.querySelector('#mainView').hidden && ad.querySelector('#dialogueMix').getClientRects().length
+  && ad.querySelector('#audioExact').getClientRects().length, 'Voice Clarity and Audio Sync are on the playback page');
 const dialogueHelp = ad.querySelector('#dialogueDetails');
-check(!dialogueHelp.open && !ad.querySelector('#dialogueSafety').closest('details')
-  && ad.querySelector('#dialogueSafety').textContent.includes('suddenly louder'), 'dialogue fallback warning remains visible with technical help collapsed');
-dialogueHelp.querySelector('summary').click();
-check(dialogueHelp.open && ad.documentElement.scrollWidth <= 360, 'expanded dialogue help fits the popup width');
-dialogueHelp.querySelector('summary').click();
+check(dialogueHelp.hidden && ad.querySelector('#dialogueSafety').closest('.info-panel')
+  && ad.querySelector('#dialogueSafety').textContent.includes('suddenly louder'), 'dialogue fallback guidance is retained in themed info');
+ad.querySelector('#dialogueInfo').click();
+check(!dialogueHelp.hidden && ad.documentElement.scrollWidth <= 360, 'dialogue info fits the popup width');
+ad.querySelector('#dialogueInfo').click();
 const dialogue = (type, fields = {}) => request(audio.id, 'DIALOGUE_' + type, fields);
 const mixControl = ad.querySelector('#dialogueMix');
 mixControl.value = '0';
@@ -94,6 +93,8 @@ const fallback = await page(async () => {
   return Math.sqrt(v.reduce((n, x) => n + x*x, 0) / v.length);
 });
 check(fallback > 0.1 && (await audioState()).dialogueEnabled, 'processor failure returns real unfiltered samples while retaining requested On state');
+await waitFor(async () => { if (!ad.querySelector('#dialogueError').textContent.includes('suddenly louder')) throw new Error('Inline failure warning pending'); });
+check(ad.querySelector('#dialogueError').getClientRects().length && dialogueHelp.hidden, 'sudden-loudness failure warning is visible inline without opening info');
 await dialogue('ENABLE', { enabled: false });
 await dialogue('ENABLE', { enabled: true });
 await waitFor(async () => {

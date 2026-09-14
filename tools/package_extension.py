@@ -5,6 +5,7 @@ import json
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 EXTENSION_ENTRIES = (
+    "LICENSE",
     "manifest.json",
     "background",
     "content",

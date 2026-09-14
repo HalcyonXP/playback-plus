@@ -38,6 +38,7 @@ DRIVER = r"""
     return {name, innerHeight, innerWidth, dpr: devicePixelRatio, screenHeight: screen.availHeight,
       speed: el('speedValue').textContent, savedDefault: el('defaultSpeed').textContent,
       savingDefault: el('saveDefault').disabled, notice: el('notice').textContent,
+      info: [...document.querySelectorAll('.info-panel')].filter(e=>!e.hidden).map(e=>({rect:e.getBoundingClientRect().toJSON(),scrollTop:e.scrollTop,scrollHeight:e.scrollHeight,clientHeight:e.clientHeight})),
       bodyHeight: body.getBoundingClientRect().height, appHeight: document.querySelector('.app').getBoundingClientRect().height,
       frameRadius: getComputedStyle(document.querySelector('.app')).borderRadius,
       rootBackground: getComputedStyle(root).backgroundColor, bodyBackground: getComputedStyle(body).backgroundColor,
@@ -75,15 +76,13 @@ DRIVER = r"""
     await report('main-default-resaved');
     if (el('defaultSpeed').textContent !== '1×' || el('notice').textContent) throw new Error('Save must replace the snapshot quietly');
     for (const view of ['audio', 'dialogue']) {
-      el(view + 'Button').click();
       await report(view);
-      el(view + 'Details').querySelector('summary').click();
+      el(view + 'Info').click();
       await report(view + '-expanded');
-      document.scrollingElement.scrollTop = document.scrollingElement.scrollHeight;
+      el(view + 'Details').scrollTop = el(view + 'Details').scrollHeight;
       await report(view + '-bottom');
-      el(view + 'Details').querySelector('summary').click();
+      el(view + 'Info').click();
       await report(view + '-collapsed');
-      el(view + 'BackButton').click();
       await report('main-after-' + view);
     }
     el('configButton').click();
@@ -259,14 +258,20 @@ def main():
                 assert r['rootScroll'] <= r['rootClient'], ('Unnecessary scrollbar', r)
             else:
                 assert r['rootScroll'] > r['rootClient'], ('Overflow must stay accessible', r)
-            if r['name'].endswith('-bottom'):
+            if r['name'] == 'configuration-bottom':
                 assert abs(r['scrollTop'] - (r['rootScroll'] - r['rootClient'])) <= 1, ('Cannot reach help end', r)
         by_name = {r['name']: r for r in results}
         for view in ('audio', 'dialogue', 'configuration'):
             start, expanded, collapsed = (by_name[view], by_name[view + '-expanded'], by_name[view + '-collapsed'])
             assert collapsed['innerHeight'] == start['innerHeight'], ('Closing help must restore original size', view)
-            if start['innerHeight'] < cap:
-                assert expanded['innerHeight'] > start['innerHeight'], ('Opening help must grow popup', view)
+            if view == 'configuration' and start['innerHeight'] < cap:
+                assert expanded['innerHeight'] > start['innerHeight'], ('Configuration details grow naturally', view)
+            if view != 'configuration':
+                assert expanded['innerHeight'] == start['innerHeight'] and expanded['bodyHeight'] == start['bodyHeight'], ('Info must not resize the popup', view)
+                info = expanded['info'][0]['rect']
+                assert info['left'] >= 0 and info['right'] <= 360 and info['top'] >= 0 and info['bottom'] <= expanded['innerHeight'], info
+                bottom = by_name[view + '-bottom']['info'][0]
+                assert abs(bottom['scrollTop'] - (bottom['scrollHeight'] - bottom['clientHeight'])) <= 1, bottom
         assert by_name['main-final']['innerHeight'] == by_name['main']['innerHeight']
     print('Native popup cases:', len(results))
 

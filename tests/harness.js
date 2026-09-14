@@ -248,8 +248,9 @@ function createHarness({ defaults = { playbackSpeed: 2, lastNon1xSpeed: 2 }, tab
       return frame;
     },
     createPopup(tabId = harness.activeTab) {
-      const ids = ["saveDefault", "defaultSpeed", "availability", "availabilityText", "speedValue", "speedRange", "decreaseButton", "increaseButton", "alternateValue", "notice", "toggleKeyButton", "increaseKeyButton", "decreaseKeyButton", "hotkeyHint", "hotkeyFeedback", "mainView", "configView", "configButton", "backButton", "audioView", "audioToggleKeyButton", "audioIncreaseKeyButton", "audioDecreaseKeyButton", "audioButton", "audioSummary", "audioBackButton", "audioEnabled", "audioValue", "audioExact", "audioDecrease", "audioIncrease", "audioReset", "audioStatus", "audioError", "dialogueButton", "dialogueSummary", "dialogueView", "dialogueBackButton", "dialogueEnabled", "dialogueMix", "dialogueValue", "dialogueStatus", "dialogueError"];
+      const ids = [...readSource("popup/popup.html").matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
       const elements = Object.fromEntries(ids.map((id) => [id, new FakeElement("div")]));
+      const intervals = [];
       elements.hotkeyHint.textContent = readSource("popup/popup.html").match(/<p id="hotkeyHint"[^>]*>([^<]+)<\/p>/)[1];
       const presets = [0.5, 1, 1.5, 2, 2.5, 3].map((speed) => {
         const button = new FakeElement("button");
@@ -257,8 +258,7 @@ function createHarness({ defaults = { playbackSpeed: 2, lastNon1xSpeed: 2 }, tab
         return button;
       });
       elements.configView.hidden = true;
-      elements.audioView.hidden = true;
-      elements.dialogueView.hidden = true;
+      elements.mainView.hidden = false;
       const document = new FakeElement("#document");
       document.querySelector = selector => elements[selector.slice(1)];
       document.getElementById = id => elements[id];
@@ -267,7 +267,7 @@ function createHarness({ defaults = { playbackSpeed: 2, lastNon1xSpeed: 2 }, tab
         console,
         matchMedia() { return { matches: true, addEventListener() {} }; },
         requestAnimationFrame() { return 1; }, cancelAnimationFrame() {},
-        setTimeout() { return 1; }, clearTimeout() {}, setInterval() { return 1; }, clearInterval() {}, addEventListener() {},
+        setTimeout() { return 1; }, clearTimeout() {}, setInterval(callback) { intervals.push(callback); return intervals.length; }, clearInterval() {}, addEventListener() {},
         document,
         browser: {
           storage,
@@ -283,7 +283,7 @@ function createHarness({ defaults = { playbackSpeed: 2, lastNon1xSpeed: 2 }, tab
         }
       });
       vm.runInContext(readSource("popup/audio.js"), popupContext, { filename: "popup/audio.js" });
-      return { elements, presets, dispatchKey(overrides = {}, type = "keydown") {
+      return { elements, presets, async pollAudio() { for (const callback of intervals) callback(); await settle(); }, dispatchKey(overrides = {}, type = "keydown") {
         const key = {
           code: "KeyK", repeat: false, isComposing: false,
           altKey: false, ctrlKey: false, metaKey: false, shiftKey: false,

@@ -46,13 +46,11 @@ test("dialogue settings migrate safely, are independent, serialized, tab-local a
 test("dialogue popup has independent On/Off and mix, navigation, partial and fail-open status", async () => {
   const h = createHarness();
   h.createFrame(1);
-  const { elements: e } = h.createPopup(1);
+  const { elements: e, pollAudio } = h.createPopup(1);
   assert.equal(e.dialogueMix.disabled, true);
   await settle();
-  e.dialogueButton.dispatch("click");
-  assert.equal(e.dialogueView.hidden, false);
-  assert.equal(e.audioView.hidden, true);
-  assert.equal(e.mainView.hidden, true);
+  await pollAudio();
+  assert.equal(e.mainView.hidden, false);
   assert.equal(e.dialogueEnabled.textContent, "Off");
   e.dialogueMix.value = "65";
   e.dialogueMix.dispatch("input");
@@ -66,14 +64,14 @@ test("dialogue popup has independent On/Off and mix, navigation, partial and fai
   assert.equal(h.audioSessions.get(1).enabled, false);
   assert.match(e.dialogueStatus.textContent, /On.*65% mix/);
   h.audioReports.set(1, { dialogueConnected: 0, dialogueFailed: 1, dialogueError: "RNNoise failed. Using unfiltered audio." });
-  e.dialogueButton.dispatch("click");
+  await pollAudio();
   await settle();
   assert.equal(e.dialogueStatus.textContent, "Filter unavailable.");
   assert.match(e.dialogueError.textContent, /Turn it Off and On/);
   assert.doesNotMatch(e.dialogueError.textContent, /RNNoise/);
   assert.equal(e.dialogueEnabled.textContent, "On", "requested state is not silently overwritten on failure");
   h.audioReports.set(1, { dialogueConnected: 1, unsupported: 1 });
-  e.dialogueButton.dispatch("click");
+  await pollAudio();
   await settle();
   assert.match(e.dialogueStatus.textContent, /Limited support/);
   h.failSessions = true;
@@ -81,11 +79,8 @@ test("dialogue popup has independent On/Off and mix, navigation, partial and fai
   await settle();
   assert.equal(e.dialogueEnabled.textContent, "On");
   assert.match(e.dialogueError.textContent, /Couldn't change this setting/);
-  e.dialogueBackButton.dispatch("click");
   assert.equal(e.mainView.hidden, false);
-  assert.equal(e.dialogueView.hidden, true);
   e.configButton.dispatch("click");
-  assert.equal(e.dialogueView.hidden, true);
 });
 
 function wasmHarness() {

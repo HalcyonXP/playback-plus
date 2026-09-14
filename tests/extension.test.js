@@ -265,7 +265,7 @@ test("manifest and popup expose tab-local media control and session persistence"
   const manifest = JSON.parse(readSource("manifest.json"));
   const popup = readSource("popup/popup.html");
   assert.equal(manifest.name, "Playback Plus");
-  assert.equal(manifest.version, "1.8.1");
+  assert.equal(manifest.version, "1.9.0");
   assert.equal(manifest.action.default_title, "Playback Plus");
   assert.equal(manifest.browser_specific_settings.gecko.id, "video-speed@local");
   assert.match(popup, /<title>Playback Plus<\/title>/);
@@ -273,7 +273,7 @@ test("manifest and popup expose tab-local media control and session persistence"
   assert.doesNotThrow(() => readSource("popup/tactile.css"));
   assert.doesNotMatch(popup, /extension-title|class="brand"|class="logo"/);
   assert.match(popup, /aria-label="Playback Plus controls"/);
-  assert.match(popup, /id="dialogueView"[^>]*hidden/);
+  assert.match(popup, /id="dialogueControls"[^>]*aria-labelledby="dialogueHeading"/);
   assert.ok(manifest.web_accessible_resources[0].resources.includes("content/dialogue-processor.js"));
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.permissions, ["storage", "sessions", "webNavigation"]);
@@ -282,7 +282,7 @@ test("manifest and popup expose tab-local media control and session persistence"
   assert.equal(manifest.commands, undefined);
   assert.match(popup, /id="configView"[^>]*hidden/);
   assert.match(popup, /id="increaseKeyButton"/);
-  assert.match(popup, /This tab’s playback speed/);
+  assert.match(popup, /id="playbackHeading">Playback Speed/);
 
 
   const referencedFiles = [

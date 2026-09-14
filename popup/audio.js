@@ -1,9 +1,7 @@
 (() => {
   "use strict";
-  const ids = ["audioButton", "audioSummary", "audioView", "audioBackButton", "audioEnabled", "audioValue",
-    "audioExact", "audioDecrease", "audioIncrease", "audioReset", "audioStatus", "audioError", "mainView", "configView",
-    "dialogueButton", "dialogueSummary", "dialogueView", "dialogueBackButton", "dialogueEnabled",
-    "dialogueMix", "dialogueValue", "dialogueStatus", "dialogueError"];
+  const ids = ["audioEnabled", "audioExact", "audioDecrease", "audioIncrease", "audioReset", "audioStatus", "audioError",
+    "dialogueEnabled", "dialogueMix", "dialogueValue", "dialogueStatus", "dialogueError"];
   const e = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
   let tabId = null;
   let state = { enabled: false, delayMs: 0, dialogueEnabled: false, dialogueMix: 100, revision: -1 };
@@ -31,22 +29,19 @@
     if (!ready) status = statusError ? "Audio controls unavailable" : "Loading…";
     else if (!state.enabled) status = `Off · ${state.delayMs} ms selected`;
     else if (statusError) status = "Can't check audio right now";
-    else if (applying && engineError) status = "Audio sync unavailable";
-    else if (applying) status = "Starting Audio sync…";
+    else if (applying && engineError) status = "Audio Sync unavailable";
+    else if (applying) status = "Starting Audio Sync…";
     else if (suspended && connected) status = "Click the page to start audio";
     else if (connected) status = `${partial ? "Limited support" : "On"} · ${state.delayMs} ms`;
-    else if (engineError) status = "Audio sync unavailable";
+    else if (engineError) status = "Audio Sync unavailable";
     else status = "";
-    // No player/bridge is not an engine failure. Keep the selected state in the
-    // entry row without claiming processing success or adding a no-media banner.
-    e.audioSummary.textContent = status || `On · ${state.delayMs} ms selected`;
+    // A requested switch/value is not processing success. No media stays quiet.
     e.audioStatus.textContent = (ready && !state.enabled) || !status
       ? ""
       : `${status}${status.endsWith("…") ? "" : "."}${state.enabled && partial && connected && !statusError ? ` ${limitedHelp}` : ""}`;
     e.audioError.textContent = writeError || (statusError
       ? "Couldn't check the audio controls. Close and reopen Playback Plus."
-      : state.enabled && engineError ? "Audio sync isn't working. Turn both audio features Off and reload the page." : "");
-    e.audioValue.textContent = `${state.delayMs} ms`;
+      : state.enabled && engineError ? "Audio Sync isn't working. Turn both audio features Off and reload the page." : "");
     if (document.activeElement !== e.audioExact || busy) e.audioExact.value = String(state.delayMs);
     e.audioEnabled.textContent = state.enabled ? "On" : "Off";
     e.audioEnabled.setAttribute("aria-checked", String(state.enabled));
@@ -71,13 +66,12 @@
     else if (filterFailed) dialogueStatus = "Filter unavailable";
     else if (engineError) dialogueStatus = "Voice Clarity unavailable";
     else dialogueStatus = "";
-    e.dialogueSummary.textContent = dialogueStatus || `On · ${state.dialogueMix}% selected`;
     e.dialogueStatus.textContent = (ready && !state.dialogueEnabled) || !dialogueStatus
       ? ""
       : `${dialogueStatus}${dialogueStatus.endsWith("…") ? "" : "."}${state.dialogueEnabled && filterPartial && filtered && !statusError ? ` ${limitedHelp}` : ""}`;
     e.dialogueError.textContent = writeError || (statusError
       ? "Couldn't check the audio controls. Close and reopen Playback Plus."
-      : state.dialogueEnabled && filterFailed ? "The filter isn't working. Turn it Off and On to try again."
+      : state.dialogueEnabled && filterFailed ? "The filter isn't working. Original sound may return suddenly louder. Turn it Off and On to try again; if sound fails, turn both audio features Off and reload."
         : state.dialogueEnabled && engineError ? "Audio processing isn't available here. Turn both audio features Off and reload the page." : "");
     e.dialogueEnabled.textContent = state.dialogueEnabled ? "On" : "Off";
     e.dialogueEnabled.setAttribute("aria-checked", String(state.dialogueEnabled));
@@ -114,30 +108,6 @@
     } catch { writeError = "Couldn't change this setting. Please try again."; }
     finally { busy = false; render(); void poll(); }
   }
-  e.audioButton.addEventListener("click", () => {
-    e.mainView.hidden = true;
-    e.configView.hidden = true;
-    e.audioView.hidden = false;
-    e.dialogueView.hidden = true;
-    e.audioBackButton.focus();
-    void poll();
-  });
-  e.audioBackButton.addEventListener("click", () => {
-    e.audioView.hidden = true;
-    e.mainView.hidden = false;
-    e.audioButton.focus();
-  });
-  e.dialogueButton.addEventListener("click", () => {
-    e.mainView.hidden = e.configView.hidden = e.audioView.hidden = true;
-    e.dialogueView.hidden = false;
-    e.dialogueBackButton.focus();
-    void poll();
-  });
-  e.dialogueBackButton.addEventListener("click", () => {
-    e.dialogueView.hidden = true;
-    e.mainView.hidden = false;
-    e.dialogueButton.focus();
-  });
   e.dialogueEnabled.addEventListener("click", () => void change("DIALOGUE_ENABLE", { enabled: !state.dialogueEnabled }));
   e.dialogueMix.addEventListener("input", () => {
     draftMix = Number(e.dialogueMix.value);

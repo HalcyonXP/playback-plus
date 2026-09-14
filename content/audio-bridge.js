@@ -90,9 +90,9 @@
         : { type: "AUDIO_SYNC_NUDGE", direction: action === "audioIncrease" ? 1 : -1 };
       void browser.runtime.sendMessage(message).then(async next => {
         await adopt(next);
-        toast(failure ? "Audio sync isn't available here. Try reloading the page."
-          : `Audio sync · ${next.delayMs} ms selected · ${next.enabled ? "On" : "Off"}`);
-      }).catch(() => toast("Couldn't change Audio sync. Please try again."));
+        toast(failure ? "Audio Sync isn't available here. Try reloading the page."
+          : `Audio Sync · ${next.delayMs} ms selected · ${next.enabled ? "On" : "Off"}`);
+      }).catch(() => toast("Couldn't change Audio Sync. Please try again."));
     }
   };
   browser.runtime.onMessage.addListener(message => {

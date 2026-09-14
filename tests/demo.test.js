@@ -9,7 +9,7 @@ const { readSource } = require("./harness");
 const ROOT = path.resolve(__dirname, "..");
 const python = process.platform === "win32" ? "python" : "python3";
 const expected = [".nojekyll", "index.html", "build-info.json", "demo/index.html", "demo/gallery.css", "demo/gallery.js", "demo/theme.js", "demo/themes.css", "demo/palettes.json", "demo/preview.html",
-  ...["popup.css", "tactile.css", "popup.js", "audio.js", "speed.js", "shortcuts.js", "shared-audio.js", "fixture.js"].map(n => "demo/assets/" + n)];
+  ...["popup.css", "tactile.css", "popup.js", "audio.js", "help.js", "speed.js", "shortcuts.js", "shared-audio.js", "fixture.js"].map(n => "demo/assets/" + n)];
 function files(dir, prefix = "") {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => entry.isDirectory()
     ? files(path.join(dir, entry.name), prefix + entry.name + "/") : [prefix + entry.name]);
