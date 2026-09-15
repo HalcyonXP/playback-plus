@@ -8,11 +8,9 @@
 
 *Playback and audio controls together, with separate shortcut configuration. Shown with example settings; click the image for a closer look.*
 
-[Explore the colour-theme design demo](https://halcyonxp.github.io/playback-plus/demo/) — a browser-only preview with fictional settings. GB1 — Charcoal / Ice blue is the released theme; the other eight colours are design studies.
-
 ## Make playback work for you
 
-- **Playback speed:** watch or listen at **0.25×–8×**, with quick presets and a one-key toggle back to normal speed.
+- **Playback speed:** watch or listen at **0.25×–8×**, with quick presets and a one-key toggle between 1× and your last custom speed.
 - **Audio Sync:** when sound arrives before the picture, add up to **5 seconds** of delay. Adjust in 500 ms steps or enter an exact value.
 - **Voice Clarity:** reduce background noise with local RNNoise speech enhancement. Use the mix slider to blend original and filtered sound.
 - **Your controls:** a compact panel with nine configurable keyboard shortcuts for speed, audio delay and filter mix. Playback changes affect your current tab, not your other open tabs.
@@ -48,13 +46,14 @@ Hover over or focus an **ⓘ** button for help; click to pin it. With the info b
 
 | Shortcut | Action |
 | --- | --- |
-| **Numpad 0** | Toggle between 1× and this tab’s last alternate speed |
+| **Numpad 0** | Toggle between 1× and this tab’s last custom (non-1×) speed |
 | **Numpad + / −** | Increase or decrease speed by 0.25× |
 | **Unassigned — Audio Sync** | Toggle On/Off, increase or decrease delay by 500 ms |
 | **Unassigned — Voice Clarity** | Toggle On/Off, increase or decrease filter mix by 10% |
 
 Shortcuts work while the webpage has focus. Customize them in **Configuration**; audio shortcuts start unassigned. Click a binding and press a key to change it, or press **Escape** during capture to clear it. A key can belong to only one action. “By 10%” changes mix by 10 percentage points (50% → 60%), within 0–100%, without turning the filter On.
 
+- **Quick toggle:** remembers the most recent non-1× speed in each tab, whether selected with the slider, presets or +/− controls/shortcuts. Choosing 1× does not erase it: 1.75× → 1× → 1.75×. New tabs starting at 1× use the previously remembered custom speed, or 2× if none exists.
 - **Default for new tabs:** choose a speed, then click **Save** beneath the presets. The displayed default stays fixed until you save again—even when playback speed changes. Existing tabs keep their own speed.
 - Fresh installs start with a **1×** default. Upgrading keeps an existing saved default, or fixes the previously used new-tab starting speed as the initial default.
 - Choose a preset from **0.5×, 1×, 1.5×, 2×, 2.5× or 3×**, or adjust in 0.25× steps with +/−. Both glide the knob while playback changes immediately; reduced-motion settings skip the glide.

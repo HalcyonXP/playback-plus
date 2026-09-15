@@ -141,6 +141,31 @@ DRIVER = r"""
         }, args: [code, fields, editable]
       });
     }
+    // Quick toggle must remember the latest custom value, not a fixed 2x,
+    // including values below normal and direct/shortcut selections of 1x.
+    for (const custom of [1.75, 0.75]) {
+      await set(b.id, custom);
+      await press(b.id, 'Numpad0');
+      await mediaAt(b.id, 1);
+      await press(b.id, 'Numpad0');
+      await mediaAt(b.id, custom);
+      await set(b.id, 1);
+      await press(b.id, 'Numpad0');
+      await mediaAt(b.id, custom);
+      await mediaAt(restored.tab.id, 2.5);
+      check((await get(b.id)).lastNon1xSpeed === custom, `quick toggle restores ${custom}x after both toggle and explicit 1x without changing other tabs`);
+    }
+    await press(b.id, 'NumpadAdd');
+    await mediaAt(b.id, 1);
+    await press(b.id, 'Numpad0');
+    await mediaAt(b.id, 0.75);
+    check(true, 'stepping up onto 1x preserves the below-normal custom speed');
+    await set(b.id, 1.25);
+    await press(b.id, 'NumpadSubtract');
+    await mediaAt(b.id, 1);
+    await press(b.id, 'Numpad0');
+    await mediaAt(b.id, 1.25);
+    check(true, 'stepping down onto 1x preserves the above-normal custom speed');
     await set(b.id, 3);
     check(!(await press(b.id, 'Equal'))[0].result, 'number-row increase is unassigned by default');
     await press(b.id, 'NumpadAdd');

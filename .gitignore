@@ -14,14 +14,6 @@
 !/tests/
 !/tools/
 
-# Reviewed design demo source and its narrowly scoped Pages workflow.
-!/demo/
-!/.github/
-/.github/*
-!/.github/workflows/
-/.github/workflows/*
-!/.github/workflows/pages.yml
-
 # Reviewed public product image only; other documentation assets stay excluded.
 !/docs/
 /docs/*

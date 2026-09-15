@@ -46,12 +46,45 @@ test("GB1 Graphite markup preserves accessible control names without retired bra
   }
 });
 
-test("GB1 production tokens match the selected study without importing its preview canvas or controllers", () => {
+test("GB1 production tokens preserve the released palette and native popup geometry", () => {
   const css = readSource("popup/popup.css"), finish = readSource("popup/tactile.css");
-  const study = readSource("demo/themes.css").match(/:root\[data-theme="gb1"\] \{ color-scheme: dark;([\s\S]*?)\n\}/)[1];
+  // Released GB1 values, independent of any design-preview infrastructure.
+  const expected = {
+    "--bg": "#20242b",
+    "--text": "#eef3fb",
+    "--muted": "#bec8d7",
+    "--accent": "#9bcaff",
+    "--line": "#7d8a9b",
+    "--key": "#7d8a9b",
+    "--key-ink": "#eef3fb",
+    "--danger": "#ffb8b8",
+    "--warning": "#f1c784",
+    "--frame-edge": "#58616e",
+    "--panel-face": "repeating-linear-gradient(0deg,#ffffff02 0 1px,transparent 1px 3px),linear-gradient(125deg,#30343b,#20242b 80%)",
+    "--highlight": "#ffffff28",
+    "--lowlight": "#00000070",
+    "--label-shadow": "-.5px 0 #101218, .5px 0 #101218, 0 -.5px #101218, 0 .5px #101218, 0 2px 1px #0005",
+    "--readout-shadow": "-1px 0 #0d1017, 1px 0 #0d1017, 0 -1px #0d1017, 0 1px #0d1017, 0 3px 1px #0006",
+    "--soft-rule": "#5c6674",
+    "--soft-accent": "#9bcaff44",
+    "--row-face": "linear-gradient(#383c43,#1d2128)",
+    "--row-shadow": "inset 0 1px #ffffff28,inset 1px 0 #ffffff0a,inset -1px 0 #0002,inset 0 -2px #00000070,0 2px 3px #0002",
+    "--row-pressed": "inset 0 2px 4px #0003,inset 0 -1px #7d8a9b",
+    "--selected-face": "linear-gradient(#3d4653,#2c3540)",
+    "--hover-face": "linear-gradient(#363d47,#272e38)",
+    "--pressed-face": "linear-gradient(#2c3540,#363d47)",
+    "--quiet-face": "#262a31",
+    "--track": "#121418",
+    "--track-edge": "#16191e",
+    "--cap-mid": "#4b525d",
+    "--cap-face": "linear-gradient(#7d8a9b,#4b525d 15%,#30343b 80%,#16191e 84%,#30343b)",
+    "--cap-border": "#7d8a9b #16191e #16191e #7d8a9b",
+    "--cap-shadow": "inset 0 1px #ffffff28,inset 1px 0 #ffffff22,inset 0 -2px #16191e,0 3px #16191e,0 4px #00000070,1px 6px 5px #0004",
+    "--thumb-groove": "linear-gradient(90deg,transparent 36%,#16191e 36% 44%,#9bcaff 44% 56%,#16191e 56% 63%,transparent 63%)"
+  };
   const tokens = text => new Map([...text.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map(m => [m[1], m[2].replace(/\s+/g, "")]));
   const production = tokens(css + finish);
-  for (const [name, value] of tokens(study)) assert.equal(production.get(name), value, name);
+  for (const [name, value] of Object.entries(expected)) assert.equal(production.get(name), value.replace(/\s+/g, ""), name);
   assert.match(css, /html, body \{[^}]*background: transparent/);
   assert.match(css, /body \{ width: 360px; min-width: 360px; overflow: visible/);
   assert.match(css, /\.app \{[^}]*border-radius: 8px/);
@@ -68,7 +101,7 @@ test("Voice Clarity is customer-facing wording only; dialogue identifiers and pr
   assert.match(html, /id="dialogueHeading">Voice Clarity<\/h2>/);
   assert.match(html.match(/<button[^>]*id="dialogueEnabled"[^>]*>/)[0], /aria-label="Voice Clarity"/);
   assert.match(html, /small delay added by Voice Clarity/);
-  for (const name of ["popup/popup.html", "popup/audio.js", "content/audio-engine.js", "content/dialogue-processor.js", "content/vendor/rnnoise/PROVENANCE.md", "demo/index.html"]) {
+  for (const name of ["popup/popup.html", "popup/audio.js", "content/audio-engine.js", "content/dialogue-processor.js", "content/vendor/rnnoise/PROVENANCE.md"]) {
     assert.doesNotMatch(readSource(name), /dialogue focus/i, name);
   }
   assert.match(readSource("popup/audio.js"), /change\("DIALOGUE_ENABLE"/);
